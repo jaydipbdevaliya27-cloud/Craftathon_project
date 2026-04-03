@@ -2,21 +2,16 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  username: {
+  name: {
     type: String,
-    required: [true, 'Username is required'],
-    unique: true,
+    required: [true, 'Name is required'],
     trim: true,
-    minlength: 3,
-    maxlength: 30,
   },
-  email: {
+  badgeNumber: {
     type: String,
-    required: [true, 'Email is required'],
+    required: [true, 'Badge number is required'],
     unique: true,
     trim: true,
-    lowercase: true,
-    match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
   },
   password: {
     type: String,
@@ -25,23 +20,22 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'officer', 'technician', 'viewer'],
-    default: 'viewer',
-  },
-  rank: {
-    type: String,
-    default: '',
+    enum: ['soldier', 'officer', 'admin'],
+    default: 'soldier',
   },
   unit: {
     type: String,
-    default: '',
+    required: [true, 'Unit is required'],
+    trim: true,
+  },
+  rank: {
+    type: String,
+    required: [true, 'Rank is required'],
+    trim: true,
   },
   isActive: {
     type: Boolean,
     default: true,
-  },
-  lastLogin: {
-    type: Date,
   },
   createdAt: {
     type: Date,

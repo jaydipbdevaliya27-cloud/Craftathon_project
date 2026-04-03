@@ -1,17 +1,6 @@
 const mongoose = require('mongoose');
-const crypto = require('crypto');
 
 const transactionSchema = new mongoose.Schema({
-  transactionId: {
-    type: String,
-    unique: true,
-    default: () => 'TXN-' + crypto.randomBytes(5).toString('hex').toUpperCase(),
-  },
-  type: {
-    type: String,
-    enum: ['Issue', 'Return', 'Transfer', 'Maintenance', 'Decommission'],
-    required: [true, 'Transaction type is required'],
-  },
   asset: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Asset',
@@ -20,60 +9,34 @@ const transactionSchema = new mongoose.Schema({
   fromUser: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    default: null,
+    required: true,
   },
   toUser: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    default: null,
+    required: true,
   },
-  fromLocation: {
+  transactionType: {
+    type: String,
+    enum: ['checkout', 'checkin', 'transfer'],
+    required: true,
+  },
+  location: {
+    type: String,
+    required: [true, 'Location is required'],
+    trim: true,
+  },
+  missionCode: {
     type: String,
     trim: true,
     default: '',
   },
-  toLocation: {
+  remarks: {
     type: String,
     trim: true,
     default: '',
   },
-  quantity: {
-    type: Number,
-    default: 1,
-    min: 1,
-  },
-  purpose: {
-    type: String,
-    trim: true,
-    default: '',
-  },
-  status: {
-    type: String,
-    enum: ['Pending', 'Approved', 'Completed', 'Rejected', 'Cancelled'],
-    default: 'Pending',
-  },
-  authorizedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: null,
-  },
-  notes: {
-    type: String,
-    default: '',
-  },
-  transactionDate: {
-    type: Date,
-    default: Date.now,
-  },
-  completedDate: {
-    type: Date,
-    default: null,
-  },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-  },
-  createdAt: {
+  timestamp: {
     type: Date,
     default: Date.now,
   },

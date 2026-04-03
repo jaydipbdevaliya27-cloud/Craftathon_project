@@ -1,40 +1,31 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 const auditLogSchema = new mongoose.Schema({
   action: {
     type: String,
     required: true,
-    enum: [
-      'CREATE_ASSET', 'UPDATE_ASSET', 'DELETE_ASSET',
-      'ASSIGN_ASSET', 'RETURN_ASSET',
-      'CREATE_TRANSACTION', 'UPDATE_TRANSACTION',
-      'CREATE_USER', 'UPDATE_USER', 'DELETE_USER',
-      'LOGIN', 'LOGOUT', 'FAILED_LOGIN',
-      'CREATE_MAINTENANCE', 'UPDATE_MAINTENANCE', 'COMPLETE_MAINTENANCE',
-      'OTHER',
-    ],
   },
   performedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
-  targetModel: {
-    type: String,
-    enum: ['Asset', 'User', 'Transaction', 'Maintenance', 'System'],
-    default: 'System',
-  },
-  targetId: {
+  assetId: {
     type: mongoose.Schema.Types.ObjectId,
-    default: null,
+    ref: 'Asset',
+    required: true,
   },
   details: {
     type: String,
     default: '',
   },
-  ipAddress: {
+  previousHash: {
     type: String,
-    default: '',
+    default: '0',
+  },
+  currentHash: {
+    type: String,
   },
   timestamp: {
     type: Date,
@@ -42,13 +33,26 @@ const auditLogSchema = new mongoose.Schema({
   },
 });
 
-// Static method for easy logging
-auditLogSchema.statics.log = async function (data) {
-  try {
-    return await this.create(data);
-  } catch (err) {
-    console.error('Audit log error:', err.message);
-  }
+// SHA-256 generation on save (Mongoose 9: async hooks resolve via returned promise, no next())
+auditLogSchema.pre('save', async function () {
+  const previousLog = await this.constructor.findOne().sort({ timestamp: -1 });
+  this.previousHash = previousLog ? previousLog.currentHash : '0';
+
+  const dataToHash = 
+    this.action + 
+    this.performedBy.toString() + 
+    this.assetId.toString() + 
+    this.details + 
+    this.timestamp.toISOString() + 
+    this.previousHash;
+
+  this.currentHash = crypto.createHash('sha256').update(dataToHash).digest('hex');
+});
+
+// Static method to get the last hash
+auditLogSchema.statics.getLastHash = async function () {
+  const lastLog = await this.findOne().sort({ timestamp: -1 });
+  return lastLog ? lastLog.currentHash : '0';
 };
 
 module.exports = mongoose.model('AuditLog', auditLogSchema);
