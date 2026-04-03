@@ -1,0 +1,156 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<main class="main-content">
+  <div class="page-header">
+    <h1 class="page-title">COMMAND DASHBOARD</h1>
+    <p class="page-subtitle">Overview of Defence Asset Status</p>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">📦</div>
+      <div class="stat-info">
+        <div class="stat-value"><%= stats.totalAssets %></div>
+        <div class="stat-label">TOTAL ASSETS</div>
+      </div>
+    </div>
+    <div class="stat-card stat-available">
+      <div class="stat-icon">✅</div>
+      <div class="stat-info">
+        <div class="stat-value"><%= stats.availableAssets %></div>
+        <div class="stat-label">AVAILABLE</div>
+      </div>
+    </div>
+    <div class="stat-card stat-inuse">
+      <div class="stat-icon">🔄</div>
+      <div class="stat-info">
+        <div class="stat-value"><%= stats.inUseAssets %></div>
+        <div class="stat-label">IN USE</div>
+      </div>
+    </div>
+    <div class="stat-card stat-maintenance">
+      <div class="stat-icon">🛠️</div>
+      <div class="stat-info">
+        <div class="stat-value"><%= stats.maintenanceAssets %></div>
+        <div class="stat-label">MAINTENANCE</div>
+      </div>
+    </div>
+    <div class="stat-card stat-pending">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-info">
+        <div class="stat-value"><%= stats.maintenanceDue %></div>
+        <div class="stat-label">PENDING TASKS</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Grid -->
+  <div class="dashboard-grid">
+    <!-- Recent Transactions -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">RECENT TRANSACTIONS</h2>
+        <a href="/transactions" class="btn btn-sm btn-outline">VIEW ALL</a>
+      </div>
+      <div class="card-body">
+        <% if (recentTransactions.length === 0) { %>
+          <p class="empty-msg">No transactions yet.</p>
+        <% } else { %>
+          <table class="table">
+            <thead>
+              <tr><th>TYPE</th><th>ASSET</th><th>TO</th><th>DATE</th></tr>
+            </thead>
+            <tbody>
+              <% recentTransactions.forEach(txn => { %>
+                <tr>
+                  <td><span class="badge badge-<%= txn.type.toLowerCase() %>"><%= txn.type %></span></td>
+                  <td><%= txn.asset ? txn.asset.name : 'N/A' %></td>
+                  <td><%= txn.toUser ? txn.toUser.username : '—' %></td>
+                  <td><%= new Date(txn.createdAt).toLocaleDateString() %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Activity Log -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">RECENT ACTIVITY</h2>
+        <a href="/audit" class="btn btn-sm btn-outline">VIEW LOG</a>
+      </div>
+      <div class="card-body">
+        <% if (recentLogs.length === 0) { %>
+          <p class="empty-msg">No activity recorded.</p>
+        <% } else { %>
+          <ul class="activity-list">
+            <% recentLogs.forEach(log => { %>
+              <li class="activity-item">
+                <span class="activity-dot"></span>
+                <div class="activity-content">
+                  <span class="activity-action"><%= log.action %></span>
+                  <span class="activity-user">by <%= log.performedBy ? log.performedBy.username : 'Unknown' %></span>
+                  <span class="activity-time"><%= new Date(log.timestamp).toLocaleString() %></span>
+                </div>
+              </li>
+            <% }) %>
+          </ul>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Asset Categories -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">ASSETS BY CATEGORY</h2>
+      </div>
+      <div class="card-body">
+        <% if (byCategory.length === 0) { %>
+          <p class="empty-msg">No assets found.</p>
+        <% } else { %>
+          <div class="category-bars">
+            <% const maxCount = Math.max(...byCategory.map(c => c.count), 1); %>
+            <% byCategory.forEach(cat => { %>
+              <div class="category-bar-item">
+                <span class="category-name"><%= cat._id %></span>
+                <div class="bar-bg">
+                  <div class="bar-fill" style="width: <%= (cat.count/maxCount*100).toFixed(0) %>%"></div>
+                </div>
+                <span class="category-count"><%= cat.count %></span>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">QUICK ACTIONS</h2>
+      </div>
+      <div class="card-body quick-actions">
+        <a href="/assets/add" class="action-btn">
+          <span class="action-icon">➕</span>
+          <span>Add Asset</span>
+        </a>
+        <a href="/transactions" class="action-btn">
+          <span class="action-icon">📤</span>
+          <span>Issue Asset</span>
+        </a>
+        <a href="/maintenance" class="action-btn">
+          <span class="action-icon">🛠️</span>
+          <span>Schedule Maintenance</span>
+        </a>
+        <a href="/audit" class="action-btn">
+          <span class="action-icon">📋</span>
+          <span>View Audit Log</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</main>
+<%- include('../partials/footer') %>

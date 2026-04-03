@@ -1,0 +1,113 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<main class="main-content">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">TRANSACTION LOG</h1>
+      <p class="page-subtitle">Asset movement and issuance records</p>
+    </div>
+    <% if (user && (user.role === 'admin' || user.role === 'officer')) { %>
+      <button class="btn btn-primary" onclick="document.getElementById('txnModal').style.display='flex'">+ NEW TRANSACTION</button>
+    <% } %>
+  </div>
+
+  <% if (typeof req !== 'undefined' && req.query && req.query.error) { %>
+    <div class="alert alert-error"><span>⚠</span> <%= req.query.error %></div>
+  <% } %>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <form method="GET" action="/transactions" class="filter-form">
+      <select name="type" class="form-control">
+        <option value="">All Types</option>
+        <% types.forEach(t => { %>
+          <option value="<%= t %>" <%= filters.type === t ? 'selected' : '' %>><%= t %></option>
+        <% }) %>
+      </select>
+      <select name="status" class="form-control">
+        <option value="">All Status</option>
+        <% statuses.forEach(s => { %>
+          <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
+        <% }) %>
+      </select>
+      <button type="submit" class="btn btn-outline">FILTER</button>
+      <a href="/transactions" class="btn btn-ghost">CLEAR</a>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      <% if (transactions.length === 0) { %>
+        <div class="empty-state"><div class="empty-icon">🔄</div><p>No transactions found.</p></div>
+      <% } else { %>
+        <table class="table table-hover">
+          <thead>
+            <tr><th>TXN ID</th><th>TYPE</th><th>ASSET</th><th>FROM</th><th>TO</th><th>STATUS</th><th>DATE</th></tr>
+          </thead>
+          <tbody>
+            <% transactions.forEach(txn => { %>
+              <tr>
+                <td><code class="asset-id"><%= txn.transactionId %></code></td>
+                <td><span class="badge badge-<%= txn.type.toLowerCase() %>"><%= txn.type %></span></td>
+                <td><%= txn.asset ? txn.asset.name : 'N/A' %></td>
+                <td><%= txn.fromUser ? txn.fromUser.username : txn.fromLocation || '—' %></td>
+                <td><%= txn.toUser ? txn.toUser.username : txn.toLocation || '—' %></td>
+                <td><span class="status-badge status-<%= txn.status.toLowerCase() %>"><%= txn.status %></span></td>
+                <td><%= new Date(txn.createdAt).toLocaleDateString() %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+</main>
+
+<!-- New Transaction Modal -->
+<div id="txnModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this) this.style.display='none'">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>NEW TRANSACTION</h2>
+      <button onclick="document.getElementById('txnModal').style.display='none'" class="modal-close">✕</button>
+    </div>
+    <form action="/transactions/create" method="POST" class="modal-body">
+      <div class="form-group">
+        <label>TYPE</label>
+        <select name="type" class="form-control" required>
+          <% types.forEach(t => { %><option value="<%= t %>"><%= t %></option><% }) %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>ASSET ID</label>
+        <input type="text" name="assetId" class="form-control" placeholder="MongoDB Asset _id" required />
+      </div>
+      <div class="form-group">
+        <label>TO USER ID (optional)</label>
+        <input type="text" name="toUserId" class="form-control" placeholder="User _id" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>FROM LOCATION</label>
+          <input type="text" name="fromLocation" class="form-control" placeholder="From" />
+        </div>
+        <div class="form-group">
+          <label>TO LOCATION</label>
+          <input type="text" name="toLocation" class="form-control" placeholder="To" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>PURPOSE</label>
+        <input type="text" name="purpose" class="form-control" placeholder="Reason for transaction" />
+      </div>
+      <div class="form-group">
+        <label>NOTES</label>
+        <textarea name="notes" class="form-control" rows="2"></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="button" onclick="document.getElementById('txnModal').style.display='none'" class="btn btn-ghost">CANCEL</button>
+        <button type="submit" class="btn btn-primary">CREATE TRANSACTION</button>
+      </div>
+    </form>
+  </div>
+</div>
+<%- include('../partials/footer') %>

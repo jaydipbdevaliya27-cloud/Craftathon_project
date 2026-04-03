@@ -1,0 +1,15 @@
+<%- include('partials/header') %>
+<div class="error-page">
+  <div class="error-card">
+    <div class="error-icon">⚠</div>
+    <h1 class="error-code">ERROR</h1>
+    <p class="error-message"><%= typeof message !== 'undefined' ? message : 'An unexpected error occurred.' %></p>
+    <div class="error-actions">
+      <a href="/" class="btn btn-primary">GO HOME</a>
+      <% if (typeof user !== 'undefined' && user) { %>
+        <a href="/dashboard" class="btn btn-outline">DASHBOARD</a>
+      <% } %>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>

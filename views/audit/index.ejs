@@ -1,0 +1,55 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<main class="main-content">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">AUDIT LOG</h1>
+      <p class="page-subtitle">System activity and security event log</p>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <form method="GET" action="/audit" class="filter-form">
+      <select name="action" class="form-control">
+        <option value="">All Actions</option>
+        <% actions.forEach(a => { %>
+          <option value="<%= a %>" <%= filters.action === a ? 'selected' : '' %>><%= a %></option>
+        <% }) %>
+      </select>
+      <select name="limit" class="form-control">
+        <% [25, 50, 100, 200].forEach(l => { %>
+          <option value="<%= l %>" <%= parseInt(filters.limit) === l ? 'selected' : '' %>>Last <%= l %></option>
+        <% }) %>
+      </select>
+      <button type="submit" class="btn btn-outline">FILTER</button>
+      <a href="/audit" class="btn btn-ghost">CLEAR</a>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      <% if (logs.length === 0) { %>
+        <div class="empty-state"><div class="empty-icon">📋</div><p>No audit logs found.</p></div>
+      <% } else { %>
+        <table class="table table-hover">
+          <thead>
+            <tr><th>TIMESTAMP</th><th>ACTION</th><th>PERFORMED BY</th><th>TARGET</th><th>DETAILS</th><th>IP</th></tr>
+          </thead>
+          <tbody>
+            <% logs.forEach(log => { %>
+              <tr>
+                <td class="mono"><%= new Date(log.timestamp).toLocaleString() %></td>
+                <td><span class="audit-action audit-<%= log.action.includes('DELETE') || log.action === 'FAILED_LOGIN' ? 'danger' : log.action.includes('CREATE') ? 'success' : 'info' %>"><%= log.action %></span></td>
+                <td><%= log.performedBy ? log.performedBy.username : 'SYSTEM' %><% if (log.performedBy && log.performedBy.rank) { %> <small>(<%= log.performedBy.rank %>)</small><% } %></td>
+                <td><%= log.targetModel %></td>
+                <td class="audit-details"><%= log.details || '—' %></td>
+                <td class="mono"><%= log.ipAddress || '—' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+</main>
+<%- include('../partials/footer') %>

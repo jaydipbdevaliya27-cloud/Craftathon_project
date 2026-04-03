@@ -1,0 +1,92 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<main class="main-content">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">REGISTER NEW ASSET</h1>
+      <p class="page-subtitle">Add a new asset to the tracking system</p>
+    </div>
+    <a href="/assets" class="btn btn-ghost">← BACK</a>
+  </div>
+
+  <% if (error) { %>
+    <div class="alert alert-error"><span>⚠</span> <%= error %></div>
+  <% } %>
+
+  <div class="card">
+    <div class="card-body">
+      <form action="/assets/add" method="POST" class="asset-form">
+        <div class="form-section">
+          <h3 class="form-section-title">BASIC INFORMATION</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">ASSET NAME *</label>
+              <input type="text" id="name" name="name" class="form-control" placeholder="e.g. M4 Carbine Rifle" required />
+            </div>
+            <div class="form-group">
+              <label for="category">CATEGORY *</label>
+              <select id="category" name="category" class="form-control" required>
+                <option value="">Select Category</option>
+                <% categories.forEach(c => { %>
+                  <option value="<%= c %>"><%= c %></option>
+                <% }) %>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="serialNumber">SERIAL NUMBER</label>
+              <input type="text" id="serialNumber" name="serialNumber" class="form-control" placeholder="Unique serial number" />
+            </div>
+            <div class="form-group">
+              <label for="manufacturer">MANUFACTURER</label>
+              <input type="text" id="manufacturer" name="manufacturer" class="form-control" placeholder="e.g. Colt Defense" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="description">DESCRIPTION</label>
+            <textarea id="description" name="description" class="form-control" rows="3" placeholder="Asset description, specifications, etc."></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">STATUS & LOCATION</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="condition">CONDITION</label>
+              <select id="condition" name="condition" class="form-control">
+                <% conditions.forEach(c => { %>
+                  <option value="<%= c %>"><%= c %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="location">LOCATION</label>
+              <input type="text" id="location" name="location" class="form-control" placeholder="e.g. Arms Room A" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="unit">UNIT</label>
+              <input type="text" id="unit" name="unit" class="form-control" placeholder="e.g. Alpha Company" />
+            </div>
+            <div class="form-group">
+              <label for="acquisitionCost">ACQUISITION COST (₹)</label>
+              <input type="number" id="acquisitionCost" name="acquisitionCost" class="form-control" placeholder="0" min="0" step="0.01" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="tags">TAGS (comma-separated)</label>
+            <input type="text" id="tags" name="tags" class="form-control" placeholder="e.g. classified, high-value, tracked" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a href="/assets" class="btn btn-ghost">CANCEL</a>
+          <button type="submit" class="btn btn-primary">REGISTER ASSET & GENERATE QR</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+<%- include('../partials/footer') %>

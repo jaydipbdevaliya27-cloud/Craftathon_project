@@ -1,0 +1,27 @@
+<%- include('../partials/header') %>
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-logo">⚔</div>
+    <h1 class="auth-title">DEFENCETRACK</h1>
+    <p class="auth-subtitle">Secure Asset Accountability System</p>
+    <% if (error) { %>
+      <div class="alert alert-error"><span>⚠</span> <%= error %></div>
+    <% } %>
+    <% if (success) { %>
+      <div class="alert alert-success"><span>✔</span> <%= success %></div>
+    <% } %>
+    <form action="/auth/login" method="POST" class="auth-form">
+      <div class="form-group">
+        <label for="username">USERNAME</label>
+        <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username" required autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label for="password">PASSWORD</label>
+        <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required autocomplete="current-password" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">AUTHENTICATE</button>
+    </form>
+    <p class="auth-footer">No account? <a href="/auth/register">Register here</a></p>
+  </div>
+</div>
+<%- include('../partials/footer') %>

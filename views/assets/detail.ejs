@@ -1,0 +1,91 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<main class="main-content">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title"><%= asset.name %></h1>
+      <p class="page-subtitle">Asset ID: <%= asset.assetId %></p>
+    </div>
+    <div class="header-actions">
+      <a href="/assets" class="btn btn-ghost">← BACK</a>
+      <% if (user && (user.role === 'admin' || user.role === 'officer')) { %>
+        <form action="/assets/<%= asset._id %>/delete" method="POST" onsubmit="return confirm('Delete this asset?');" style="display:inline">
+          <button type="submit" class="btn btn-danger">DELETE</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <!-- Asset Info -->
+    <div class="card detail-card">
+      <div class="card-header"><h2 class="card-title">ASSET INFORMATION</h2></div>
+      <div class="card-body">
+        <div class="detail-row"><span class="detail-label">Category</span><span class="badge badge-category"><%= asset.category %></span></div>
+        <div class="detail-row"><span class="detail-label">Serial Number</span><span class="detail-value"><%= asset.serialNumber || '—' %></span></div>
+        <div class="detail-row"><span class="detail-label">Status</span><span class="status-badge status-<%= asset.status.toLowerCase().replace(/ /g,'-') %>"><%= asset.status %></span></div>
+        <div class="detail-row"><span class="detail-label">Condition</span><span class="detail-value condition-<%= asset.condition.toLowerCase() %>"><%= asset.condition %></span></div>
+        <div class="detail-row"><span class="detail-label">Location</span><span class="detail-value"><%= asset.location %></span></div>
+        <div class="detail-row"><span class="detail-label">Unit</span><span class="detail-value"><%= asset.unit || '—' %></span></div>
+        <div class="detail-row"><span class="detail-label">Manufacturer</span><span class="detail-value"><%= asset.manufacturer || '—' %></span></div>
+        <div class="detail-row"><span class="detail-label">Acquisition Cost</span><span class="detail-value">₹<%= asset.acquisitionCost.toLocaleString() %></span></div>
+        <div class="detail-row"><span class="detail-label">Assigned To</span><span class="detail-value"><%= asset.assignedTo ? asset.assignedTo.username + (asset.assignedTo.rank ? ' (' + asset.assignedTo.rank + ')' : '') : 'Unassigned' %></span></div>
+        <div class="detail-row"><span class="detail-label">Acquired</span><span class="detail-value"><%= new Date(asset.acquisitionDate).toLocaleDateString() %></span></div>
+        <% if (asset.description) { %>
+          <div class="detail-row detail-row-block"><span class="detail-label">Description</span><p class="detail-value"><%= asset.description %></p></div>
+        <% } %>
+        <% if (asset.tags && asset.tags.length > 0) { %>
+          <div class="detail-row"><span class="detail-label">Tags</span><div class="tags-list"><% asset.tags.forEach(tag => { %><span class="tag"><%= tag %></span><% }) %></div></div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Update Form -->
+    <% if (user && (user.role === 'admin' || user.role === 'officer' || user.role === 'technician')) { %>
+    <div class="card detail-card">
+      <div class="card-header"><h2 class="card-title">UPDATE STATUS</h2></div>
+      <div class="card-body">
+        <form action="/assets/<%= asset._id %>/update" method="POST">
+          <div class="form-group">
+            <label>STATUS</label>
+            <select name="status" class="form-control">
+              <% ['Available', 'In Use', 'Under Maintenance', 'Decommissioned', 'Lost'].forEach(s => { %>
+                <option value="<%= s %>" <%= asset.status === s ? 'selected' : '' %>><%= s %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>CONDITION</label>
+            <select name="condition" class="form-control">
+              <% ['Excellent', 'Good', 'Fair', 'Poor'].forEach(c => { %>
+                <option value="<%= c %>" <%= asset.condition === c ? 'selected' : '' %>><%= c %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>LOCATION</label>
+            <input type="text" name="location" class="form-control" value="<%= asset.location %>" />
+          </div>
+          <div class="form-group">
+            <label>NOTES</label>
+            <textarea name="notes" class="form-control" rows="3"><%= asset.notes || '' %></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">UPDATE ASSET</button>
+        </form>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- QR Code -->
+    <% if (asset.qrCode) { %>
+    <div class="card detail-card">
+      <div class="card-header"><h2 class="card-title">ASSET QR CODE</h2></div>
+      <div class="card-body text-center">
+        <img src="<%= asset.qrCode %>" alt="QR Code for <%= asset.name %>" class="qr-code" />
+        <p class="qr-info">Scan to identify this asset</p>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</main>
+<%- include('../partials/footer') %>

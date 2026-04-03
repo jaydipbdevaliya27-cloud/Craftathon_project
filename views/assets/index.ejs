@@ -1,0 +1,78 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<main class="main-content">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">ASSET REGISTRY</h1>
+      <p class="page-subtitle">All tracked defence equipment</p>
+    </div>
+    <% if (user && (user.role === 'admin' || user.role === 'officer')) { %>
+      <a href="/assets/add" class="btn btn-primary">+ ADD ASSET</a>
+    <% } %>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <form method="GET" action="/assets" class="filter-form">
+      <input type="text" name="search" class="form-control" placeholder="Search assets..." value="<%= filters.search || '' %>" />
+      <select name="status" class="form-control">
+        <option value="">All Status</option>
+        <% statuses.forEach(s => { %>
+          <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
+        <% }) %>
+      </select>
+      <select name="category" class="form-control">
+        <option value="">All Categories</option>
+        <% categories.forEach(c => { %>
+          <option value="<%= c %>" <%= filters.category === c ? 'selected' : '' %>><%= c %></option>
+        <% }) %>
+      </select>
+      <button type="submit" class="btn btn-outline">FILTER</button>
+      <a href="/assets" class="btn btn-ghost">CLEAR</a>
+    </form>
+  </div>
+
+  <!-- Asset Table -->
+  <div class="card">
+    <div class="card-body p-0">
+      <% if (assets.length === 0) { %>
+        <div class="empty-state">
+          <div class="empty-icon">📦</div>
+          <p>No assets found. <a href="/assets/add">Add the first asset.</a></p>
+        </div>
+      <% } else { %>
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>ASSET ID</th>
+              <th>NAME</th>
+              <th>CATEGORY</th>
+              <th>STATUS</th>
+              <th>CONDITION</th>
+              <th>LOCATION</th>
+              <th>ASSIGNED TO</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% assets.forEach(asset => { %>
+              <tr>
+                <td><code class="asset-id"><%= asset.assetId %></code></td>
+                <td><strong><%= asset.name %></strong></td>
+                <td><span class="badge badge-category"><%= asset.category %></span></td>
+                <td><span class="status-badge status-<%= asset.status.toLowerCase().replace(/ /g,'-') %>"><%= asset.status %></span></td>
+                <td><span class="condition-<%= asset.condition.toLowerCase() %>"><%= asset.condition %></span></td>
+                <td><%= asset.location %></td>
+                <td><%= asset.assignedTo ? asset.assignedTo.username : '—' %></td>
+                <td>
+                  <a href="/assets/<%= asset._id %>" class="btn btn-xs btn-outline">VIEW</a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+</main>
+<%- include('../partials/footer') %>

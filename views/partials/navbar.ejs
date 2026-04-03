@@ -1,0 +1,40 @@
+<%
+  const navLinks = [
+    { href: '/dashboard', label: 'Dashboard', icon: '⬛' },
+    { href: '/assets', label: 'Assets', icon: '🔧' },
+    { href: '/transactions', label: 'Transactions', icon: '🔄' },
+    { href: '/maintenance', label: 'Maintenance', icon: '🛠️' },
+    { href: '/audit', label: 'Audit Log', icon: '📋' },
+  ];
+%>
+<nav class="navbar">
+  <div class="nav-brand">
+    <span class="nav-logo">⚔</span>
+    <span class="nav-title">DEFENCETRACK</span>
+  </div>
+  <ul class="nav-links">
+    <% navLinks.forEach(link => { %>
+      <li>
+        <a href="<%= link.href %>" class="nav-link <%= currentPath && currentPath.startsWith(link.href) ? 'active' : '' %>">
+          <span class="nav-icon"><%= link.icon %></span>
+          <span><%= link.label %></span>
+        </a>
+      </li>
+    <% }) %>
+  </ul>
+  <div class="nav-user">
+    <% if (user) { %>
+      <div class="user-info">
+        <span class="user-avatar"><%= user.username[0].toUpperCase() %></span>
+        <div class="user-details">
+          <span class="user-name"><%= user.username %></span>
+          <span class="user-role badge-<%= user.role %>"><%= user.role.toUpperCase() %></span>
+        </div>
+      </div>
+      <form action="/auth/logout" method="POST" class="logout-form">
+        <button type="submit" class="btn-logout">LOGOUT</button>
+      </form>
+    <% } %>
+  </div>
+  <button class="nav-toggle" id="navToggle">☰</button>
+</nav>
