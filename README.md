@@ -233,9 +233,9 @@ Block N:
 ## 🏆 Hackathon
 
 **Theme:** DefenceTech
-**Event:** [Your Hackathon Name]
+**Event:** Craftathon 
 **Track:** Defence Asset Management
-**Team:** [Your Team Name]
+**Team:** FourLoop
 
 ---
 
