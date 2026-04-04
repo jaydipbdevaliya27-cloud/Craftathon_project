@@ -11,13 +11,20 @@ router.get('/login', (req, res) => {
 
 // POST /auth/login
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, role } = req.body;
   try {
     const user = await User.findOne({ username: username.trim() });
     if (!user || !user.isActive) {
       return res.render('auth/login', {
         title: 'Login | DefenceTrack',
         error: 'Invalid credentials or account inactive.',
+        success: null,
+      });
+    }
+    if (user.role !== role) {
+      return res.render('auth/login', {
+        title: 'Login | DefenceTrack',
+        error: `Unauthorized role access for ${role.toUpperCase()}.`,
         success: null,
       });
     }
@@ -34,7 +41,10 @@ router.post('/login', async (req, res) => {
     user.lastLogin = new Date();
     await user.save({ validateBeforeSave: false });
     await AuditLog.log({ action: 'LOGIN', performedBy: user._id, details: `${username} logged in`, ipAddress: req.ip });
-    const redirectTo = req.session.returnTo || '/dashboard';
+    let redirectTo = req.session.returnTo || '/dashboard';
+    if (!req.session.returnTo && user.role === 'technician') {
+      redirectTo = '/technician/dashboard';
+    }
     delete req.session.returnTo;
     res.redirect(redirectTo);
   } catch (err) {
@@ -51,7 +61,7 @@ router.get('/register', (req, res) => {
 
 // POST /auth/register
 router.post('/register', async (req, res) => {
-  const { username, email, password, confirmPassword, role, rank, unit } = req.body;
+  const { name, username, email, badgeNumber, password, confirmPassword, role, rank, unit } = req.body;
   try {
     if (password !== confirmPassword) {
       return res.render('auth/register', { title: 'Register | DefenceTrack', error: 'Passwords do not match.', success: null });
@@ -60,7 +70,7 @@ router.post('/register', async (req, res) => {
     if (existing) {
       return res.render('auth/register', { title: 'Register | DefenceTrack', error: 'Username or email already exists.', success: null });
     }
-    const newUser = new User({ username, email, password, role: role || 'viewer', rank, unit });
+    const newUser = new User({ name, username, email, badgeNumber, password, role: role || 'soldier', rank, unit });
     await newUser.save();
     await AuditLog.log({ action: 'CREATE_USER', performedBy: newUser._id, targetModel: 'User', targetId: newUser._id, details: `New user registered: ${username}` });
     res.render('auth/register', { title: 'Register | DefenceTrack', error: null, success: 'Account created! You can now log in.' });

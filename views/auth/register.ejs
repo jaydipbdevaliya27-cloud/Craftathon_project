@@ -1,58 +1,77 @@
 <%- include('../partials/header') %>
-<div class="auth-container">
-  <div class="auth-card auth-card-wide">
-    <div class="auth-logo">⚔</div>
-    <h1 class="auth-title">CREATE ACCOUNT</h1>
-    <p class="auth-subtitle">Register for DefenceTrack Access</p>
+<div class="auth-page">
+  <div class="auth-card" style="max-width: 600px;">
+    <span class="auth-logo">🛡️</span>
+    <h1 class="auth-title">PERSONNEL REGISTRATION</h1>
+    <p class="auth-subtitle">Join the Defence Asset Management Network</p>
+    
     <% if (error) { %>
-      <div class="alert alert-error"><span>⚠</span> <%= error %></div>
+      <div class="alert alert-error"><%= error %></div>
     <% } %>
     <% if (success) { %>
-      <div class="alert alert-success"><span>✔</span> <%= success %></div>
+      <div class="alert alert-success"><%= success %></div>
     <% } %>
+
     <form action="/auth/register" method="POST" class="auth-form">
+      <div class="form-group">
+        <label for="name">FULL NAME</label>
+        <input type="text" id="name" name="name" class="form-control" placeholder="Major / Captain / Personnel" required />
+      </div>
+      
       <div class="form-row">
         <div class="form-group">
           <label for="username">USERNAME</label>
-          <input type="text" id="username" name="username" class="form-control" placeholder="Username" required />
+          <input type="text" id="username" name="username" class="form-control" placeholder="Service Num / Username" required autocomplete="username" />
         </div>
         <div class="form-group">
-          <label for="email">EMAIL</label>
-          <input type="email" id="email" name="email" class="form-control" placeholder="Email address" required />
+          <label for="badgeNumber">BADGE NUMBER</label>
+          <input type="text" id="badgeNumber" name="badgeNumber" class="form-control" placeholder="e.g. BT-9988" required />
         </div>
       </div>
+
+      <div class="form-group">
+        <label for="email">EMAIL ADDRESS</label>
+        <input type="email" id="email" name="email" class="form-control" placeholder="personnel@defence.gov" required />
+      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label for="password">PASSWORD</label>
-          <input type="password" id="password" name="password" class="form-control" placeholder="Password (min 6 chars)" required />
+          <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required />
         </div>
         <div class="form-group">
           <label for="confirmPassword">CONFIRM PASSWORD</label>
-          <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" placeholder="Confirm password" required />
+          <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" placeholder="••••••••" required />
         </div>
       </div>
+
       <div class="form-row">
         <div class="form-group">
           <label for="rank">RANK</label>
-          <input type="text" id="rank" name="rank" class="form-control" placeholder="e.g. Captain" />
+          <input type="text" id="rank" name="rank" class="form-control" placeholder="e.g. Captain" required />
         </div>
         <div class="form-group">
           <label for="unit">UNIT</label>
-          <input type="text" id="unit" name="unit" class="form-control" placeholder="e.g. 5th Battalion" />
+          <input type="text" id="unit" name="unit" class="form-control" placeholder="e.g. 5th Battalion" required />
         </div>
       </div>
+
       <div class="form-group">
-        <label for="role">ROLE</label>
-        <select id="role" name="role" class="form-control">
-          <option value="viewer">Viewer</option>
+        <label for="role">SYSTEM ROLE</label>
+        <select id="role" name="role" class="form-control" required>
+          <option value="soldier">Soldier</option>
           <option value="technician">Technician</option>
           <option value="officer">Officer</option>
-          <option value="admin">Admin</option>
+          <!-- <option value="admin">Administrator</option> -->
         </select>
       </div>
-      <button type="submit" class="btn btn-primary btn-full">REGISTER</button>
+
+      <button type="submit" class="btn btn-primary btn-full">CREATE ACCOUNT</button>
     </form>
-    <p class="auth-footer">Already have an account? <a href="/auth/login">Login here</a></p>
+    
+    <div class="auth-footer">
+      Already registered? <a href="/auth/login">Authenticate Here</a>
+    </div>
   </div>
 </div>
 <%- include('../partials/footer') %>

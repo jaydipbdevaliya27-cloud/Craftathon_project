@@ -79,6 +79,13 @@
             <label for="tags">TAGS (comma-separated)</label>
             <input type="text" id="tags" name="tags" class="form-control" placeholder="e.g. classified, high-value, tracked" />
           </div>
+          <div class="form-group">
+            <label for="maxCheckout">MAX CHECKOUT LIMIT <span style="color: var(--primary);">★</span></label>
+            <input type="number" id="maxCheckout" name="maxCheckout" class="form-control" placeholder="e.g. 100 (0 = no limit)" min="0" />
+            <small style="color: var(--text-secondary); display: block; margin-top: 0.4rem; font-size: 0.8rem;">
+              🛡️ When this asset is checked out this many times, it will be <strong>automatically flagged for mandatory maintenance</strong> and assigned to the technician team.
+            </small>
+          </div>
         </div>
 
         <div class="form-actions">

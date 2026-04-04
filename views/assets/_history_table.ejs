@@ -1,0 +1,113 @@
+<!-- Unified Lifecycle Table (shared partial) -->
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <% if (showAssetCol) { %>⚡ FLEET COMBINED TIMELINE<% } else { %>📜 UNIFIED LIFECYCLE HISTORY<% } %>
+    </h3>
+    <p class="text-muted" style="margin: 0; font-size: 0.85rem;">
+      <%= history.length %> event(s) — complete chronological audit trail
+    </p>
+  </div>
+  <div class="card-body p-0">
+    <% if (history.length === 0) { %>
+      <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+        <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📭</div>
+        <p>No transactions or maintenance records found.</p>
+      </div>
+    <% } else { %>
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>TIMESTAMP</th>
+            <% if (showAssetCol) { %><th>WEAPON</th><% } %>
+            <th>ACTIVITY</th>
+            <th>DETAILS</th>
+            <th>PERSONNEL</th>
+            <th>RECORD ID</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% history.forEach((item) => { %>
+            <tr>
+              <td class="font-mono" style="white-space: nowrap; font-size: 0.8rem;"><%= new Date(item.date).toLocaleString() %></td>
+              <% if (showAssetCol && item.asset) { %>
+              <td>
+                <strong style="font-size: 0.85rem;"><%= item.asset.name %></strong><br/>
+                <code class="asset-id" style="font-size: 0.7rem;"><%= item.asset.serialNumber %></code>
+              </td>
+              <% } else if (showAssetCol) { %>
+              <td><span class="text-muted">—</span></td>
+              <% } %>
+              <td>
+                <span style="font-size: 1.1rem; margin-right: 6px;"><%= item.icon %></span>
+                <span class="badge badge-<%= item.type === 'TRANSACTION' ? (item.data.type || 'issue').toLowerCase() : 'maintenance' %>" style="font-size: 0.75rem;">
+                  <%= item.type === 'TRANSACTION' ? item.data.type.toUpperCase() : 'MAINTENANCE' %>
+                </span>
+              </td>
+              <td style="max-width: 280px;">
+                <% if (item.type === 'TRANSACTION') { %>
+                  <% if (item.data.type === 'Issue') { %>
+                    Issued to <strong><%= item.data.toUser ? item.data.toUser.username : 'Unknown' %></strong><br/>
+                    <small class="text-muted">From: <%= item.data.fromLocation || 'Armoury' %></small>
+                  <% } else if (item.data.type === 'Return') { %>
+                    Returned by <strong><%= item.data.toUser ? item.data.toUser.username : 'Unknown' %></strong><br/>
+                    <% if (item.data.returnCondition) { %>
+                      <span class="condition-<%= item.data.returnCondition.toLowerCase() %>">Condition: <%= item.data.returnCondition %></span>
+                    <% } %>
+                  <% } else { %>
+                    <small><%= item.data.type %> processed</small>
+                  <% } %>
+                <% } else if (item.type === 'MAINTENANCE') { %>
+                  <span class="badge badge-type" style="font-size: 0.75rem;"><%= item.data.type %></span>
+                  <span class="status-badge status-<%= item.data.status.toLowerCase().replace(/ /g, '-') %>"><%= item.data.status %></span><br/>
+                  <small class="text-muted" style="display: block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<%= item.data.description %>">
+                    <%= item.data.description %>
+                  </small>
+                <% } %>
+              </td>
+              <td>
+                <% if (item.type === 'TRANSACTION') { %>
+                  <div class="user-info">
+                    <span class="user-name"><%= item.data.authorizedBy ? item.data.authorizedBy.username : 'System' %></span>
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">Auth. Officer</span>
+                  </div>
+                <% } else if (item.type === 'MAINTENANCE') { %>
+                  <div class="user-info">
+                    <span class="user-name"><%= item.data.assignedTechnician ? item.data.assignedTechnician.username : 'Unassigned' %></span>
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">Technician</span>
+                  </div>
+                <% } %>
+              </td>
+              <td>
+                <code class="asset-id" style="font-size: 0.72rem;">
+                  <%= item.type === 'TRANSACTION' ? item.data.transactionId : item.data.maintenanceId %>
+                </code>
+              </td>
+            </tr>
+          <% }) %>
+
+          <!-- Registration entry (only shown in single-asset mode) -->
+          <% if (!showAssetCol && asset) { %>
+          <tr style="background: #fffbeb;">
+            <td class="font-mono" style="font-size: 0.8rem;"><%= new Date(asset.createdAt).toLocaleString() %></td>
+            <td>
+              <span style="font-size: 1.1rem; margin-right: 6px;">✨</span>
+              <span class="badge" style="background: var(--primary-soft); color: var(--primary); font-size: 0.75rem;">REGISTRATION</span>
+            </td>
+            <td>Initial entry into system registry</td>
+            <td>
+              <div class="user-info">
+                <span class="user-name"><%= asset.createdBy ? asset.createdBy.username : 'System' %></span>
+                <span style="font-size: 0.7rem; color: var(--text-muted);">Creator</span>
+              </div>
+            </td>
+            <td>—</td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+    <% } %>
+  </div>
+</div>

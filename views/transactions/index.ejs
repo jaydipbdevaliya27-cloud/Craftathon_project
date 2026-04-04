@@ -11,27 +11,36 @@
     <% } %>
   </div>
 
-  <% if (typeof req !== 'undefined' && req.query && req.query.error) { %>
-    <div class="alert alert-error"><span>⚠</span> <%= req.query.error %></div>
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-error" style="margin-bottom: 2rem; padding: 1rem; border-left: 4px solid var(--red);">
+      <span>⚠️ ERROR:</span> <%= error %>
+    </div>
   <% } %>
 
   <!-- Filters -->
+  <!-- Unified Filter System -->
   <div class="filter-bar">
     <form method="GET" action="/transactions" class="filter-form">
-      <select name="type" class="form-control">
-        <option value="">All Types</option>
-        <% types.forEach(t => { %>
-          <option value="<%= t %>" <%= filters.type === t ? 'selected' : '' %>><%= t %></option>
-        <% }) %>
-      </select>
-      <select name="status" class="form-control">
-        <option value="">All Status</option>
-        <% statuses.forEach(s => { %>
-          <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
-        <% }) %>
-      </select>
-      <button type="submit" class="btn btn-outline">FILTER</button>
-      <a href="/transactions" class="btn btn-ghost">CLEAR</a>
+      <div class="form-group mb-0">
+        <label>ACTIVITY TYPE</label>
+        <select name="type" class="form-control">
+          <option value="">All Types</option>
+          <% types.forEach(t => { %>
+            <option value="<%= t %>" <%= filters.type === t ? 'selected' : '' %>><%= t %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mb-0">
+        <label>FINAL STATUS</label>
+        <select name="status" class="form-control">
+          <option value="">All Statuses</option>
+          <% statuses.forEach(s => { %>
+            <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
+          <% }) %>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm mt-3">FILTER</button>
+      <a href="/transactions" class="btn btn-outline btn-sm mt-3">CLEAR</a>
     </form>
   </div>
 
@@ -42,18 +51,52 @@
       <% } else { %>
         <table class="table table-hover">
           <thead>
-            <tr><th>TXN ID</th><th>TYPE</th><th>ASSET</th><th>FROM</th><th>TO</th><th>STATUS</th><th>DATE</th></tr>
+            <tr><th>TXN ID</th><th>TYPE</th><th>ASSET</th><th>SERIAL NO</th><th>FROM/TO</th><th>CONDITION</th><th>RETURN BY</th><th>STATUS</th><th>DATE</th></tr>
           </thead>
           <tbody>
             <% transactions.forEach(txn => { %>
               <tr>
                 <td><code class="asset-id"><%= txn.transactionId %></code></td>
-                <td><span class="badge badge-<%= txn.type.toLowerCase() %>"><%= txn.type %></span></td>
-                <td><%= txn.asset ? txn.asset.name : 'N/A' %></td>
-                <td><%= txn.fromUser ? txn.fromUser.username : txn.fromLocation || '—' %></td>
-                <td><%= txn.toUser ? txn.toUser.username : txn.toLocation || '—' %></td>
-                <td><span class="status-badge status-<%= txn.status.toLowerCase() %>"><%= txn.status %></span></td>
-                <td><%= new Date(txn.createdAt).toLocaleDateString() %></td>
+                <td><span class="badge badge-<%= txn.type ? txn.type.toLowerCase() : 'unknown' %>"><%= txn.type || 'N/A' %></span></td>
+                <td>
+                  <%= txn.asset ? txn.asset.name : 'N/A' %>
+                </td>
+                <td>
+                  <a href="/assets/custody-history?serial=<%= txn.asset ? txn.asset.serialNumber : '' %>" class="btn btn-ghost" style="padding: 0; min-height: 0; color: var(--blue);">
+                    <code class="asset-id"><%= txn.asset ? txn.asset.serialNumber : '—' %></code>
+                  </a>
+                </td>
+                <td>
+                  <div class="user-info">
+                    <% if (txn.type === 'Return') { %>
+                      <span class="user-name"><%= txn.toUser ? txn.toUser.username : 'Soldier' %></span>
+                      <span class="user-role" style="color: var(--primary);">→ ARMOURY</span>
+                    <% } else { %>
+                      <span class="user-role" style="color: var(--text-muted);">ARMOURY →</span>
+                      <span class="user-name"><%= txn.toUser ? txn.toUser.username : 'Personnel' %></span>
+                    <% } %>
+                  </div>
+                </td>
+                <td>
+                  <% if (txn.type === 'Issue') { %>
+                    <span class="condition-<%= txn.issueCondition ? txn.issueCondition.toLowerCase() : 'good' %>">OUT: <%= txn.issueCondition || 'Good' %></span>
+                  <% } else if (txn.type === 'Return') { %>
+                    <span class="condition-<%= txn.returnCondition ? txn.returnCondition.toLowerCase() : 'good' %>">IN: <%= txn.returnCondition || 'Good' %></span>
+                  <% } else { %>
+                    —
+                  <% } %>
+                </td>
+                <td>
+                  <% if (txn.expectedReturnDate && txn.status !== 'Completed') { %>
+                    <span class="<%= new Date(txn.expectedReturnDate) < new Date() ? 'text-danger' : '' %>">
+                      <%= new Date(txn.expectedReturnDate).toLocaleDateString() %>
+                    </span>
+                  <% } else { %>
+                    —
+                  <% } %>
+                </td>
+                <td><span class="status-badge status-<%= txn.status ? txn.status.toLowerCase() : '' %>"><%= txn.status %></span></td>
+                <td class="mono"><%= new Date(txn.createdAt).toLocaleDateString() %></td>
               </tr>
             <% }) %>
           </tbody>
@@ -67,47 +110,254 @@
 <div id="txnModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this) this.style.display='none'">
   <div class="modal">
     <div class="modal-header">
-      <h2>NEW TRANSACTION</h2>
+      <h2>EQUIPMENT LOGISTICS</h2>
       <button onclick="document.getElementById('txnModal').style.display='none'" class="modal-close">✕</button>
     </div>
-    <form action="/transactions/create" method="POST" class="modal-body">
-      <div class="form-group">
-        <label>TYPE</label>
-        <select name="type" class="form-control" required>
-          <% types.forEach(t => { %><option value="<%= t %>"><%= t %></option><% }) %>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>ASSET ID</label>
-        <input type="text" name="assetId" class="form-control" placeholder="MongoDB Asset _id" required />
-      </div>
-      <div class="form-group">
-        <label>TO USER ID (optional)</label>
-        <input type="text" name="toUserId" class="form-control" placeholder="User _id" />
-      </div>
-      <div class="form-row">
+    <div class="modal-tabs">
+      <div class="modal-tab active" onclick="switchTab(event, 'checkoutTab')">CHECK-OUT (ISSUE)</div>
+      <div class="modal-tab" onclick="switchTab(event, 'checkinTab')">CHECK-IN (RETURN)</div>
+    </div>
+
+    <!-- Check-out Form -->
+    <div id="checkoutTab" class="tab-content active">
+      <form action="/transactions/create" method="POST">
+        <input type="hidden" name="type" value="Issue">
+        <!-- BULK WEAPON CART (ISSUE) -->
         <div class="form-group">
-          <label>FROM LOCATION</label>
-          <input type="text" name="fromLocation" class="form-control" placeholder="From" />
+          <label>WEAPON SERIAL NUMBERS *</label>
+          <div class="cart-input-flex" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <div class="input-with-lookup" style="flex: 1;">
+              <input type="text" id="checkoutSerial" class="form-control" placeholder="Scan or type Serial (e.g. SR-1001) and hit Enter/Add" autocomplete="off" oninput="lookupWeapon(this, 'checkoutInfo')" onkeypress="if(event.key === 'Enter'){ event.preventDefault(); addWeaponToCart('issue'); }" />
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addWeaponToCart('issue')">ADD</button>
+          </div>
+          <div id="checkoutInfo" class="weapon-preview"></div>
+          
+          <!-- Cart Display -->
+          <div id="checkoutCartArea" style="display: none; margin-top: 1rem; border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; background: #fafafa;">
+            <div style="background: var(--bg-secondary); padding: 0.5rem 1rem; font-size: 0.75rem; font-weight: 800; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">SELECTED WEAPONS (<span id="checkoutCartCount">0</span>)</div>
+            <div id="checkoutCartItems" style="padding: 0.5rem;"></div>
+          </div>
+          <div id="checkoutHiddenInputs"></div> <!-- hidden array fields appended here -->
         </div>
         <div class="form-group">
-          <label>TO LOCATION</label>
-          <input type="text" name="toLocation" class="form-control" placeholder="To" />
+          <label>SOLDIER BADGE NUMBER *</label>
+          <input type="text" name="badgeNumber" class="form-control" placeholder="e.g. SOL-001" required />
         </div>
-      </div>
-      <div class="form-group">
-        <label>PURPOSE</label>
-        <input type="text" name="purpose" class="form-control" placeholder="Reason for transaction" />
-      </div>
-      <div class="form-group">
-        <label>NOTES</label>
-        <textarea name="notes" class="form-control" rows="2"></textarea>
-      </div>
-      <div class="form-actions">
-        <button type="button" onclick="document.getElementById('txnModal').style.display='none'" class="btn btn-ghost">CANCEL</button>
-        <button type="submit" class="btn btn-primary">CREATE TRANSACTION</button>
-      </div>
-    </form>
+        <div class="form-row">
+          <div class="form-group">
+            <label>EXPECTED RETURN DATE</label>
+            <input type="date" name="expectedReturnDate" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>ISSUE CONDITION</label>
+            <select name="issueCondition" class="form-control">
+              <option value="Excellent">Excellent</option>
+              <option value="Good" selected>Good</option>
+              <option value="Fair">Fair</option>
+              <option value="Poor">Poor</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>PURPOSE / MISSION CODE</label>
+          <input type="text" name="purpose" class="form-control" placeholder="e.g. Operation Shadow Patrol" />
+        </div>
+        <div class="form-actions">
+          <button type="button" onclick="document.getElementById('txnModal').style.display='none'" class="btn btn-ghost">CANCEL</button>
+          <button type="submit" class="btn btn-primary">CONFIRM ISSUE</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Check-in Form -->
+    <div id="checkinTab" class="tab-content">
+      <form action="/transactions/create" method="POST">
+        <input type="hidden" name="type" value="Return">
+        <!-- BULK WEAPON CART (RETURN) -->
+        <div class="form-group">
+          <label>WEAPON SERIAL NUMBERS *</label>
+          <div class="cart-input-flex" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <div class="input-with-lookup" style="flex: 1;">
+              <input type="text" id="checkinSerial" class="form-control" placeholder="Scan or type Serial (e.g. SR-1001) and hit Enter/Add" autocomplete="off" oninput="lookupWeapon(this, 'checkinInfo')" onkeypress="if(event.key === 'Enter'){ event.preventDefault(); addWeaponToCart('return'); }" />
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addWeaponToCart('return')">ADD</button>
+          </div>
+          <div id="checkinInfo" class="weapon-preview"></div>
+          
+          <!-- Cart Display -->
+          <div id="checkinCartArea" style="display: none; margin-top: 1rem; border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; background: #fafafa;">
+            <div style="background: var(--bg-secondary); padding: 0.5rem 1rem; font-size: 0.75rem; font-weight: 800; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">SELECTED WEAPONS (<span id="checkinCartCount">0</span>)</div>
+            <div id="checkinCartItems" style="padding: 0.5rem;"></div>
+          </div>
+          <div id="checkinHiddenInputs"></div> <!-- hidden array fields appended here -->
+        </div>
+        <div class="form-group">
+          <label>SOLDIER BADGE NUMBER *</label>
+          <input type="text" name="badgeNumber" class="form-control" placeholder="e.g. SOL-001" required />
+        </div>
+        <div class="form-group">
+          <label>RETURN CONDITION</label>
+          <select name="returnCondition" class="form-control">
+            <option value="Excellent">Excellent</option>
+            <option value="Good" selected>Good</option>
+            <option value="Fair">Fair</option>
+            <option value="Poor">Poor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>REMARKS / DAMAGE NOTES</label>
+          <textarea name="notes" class="form-control" rows="2" placeholder="Describe any new wear or damage..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" onclick="document.getElementById('txnModal').style.display='none'" class="btn btn-ghost">CANCEL</button>
+          <button type="submit" class="btn btn-primary">CONFIRM RETURN</button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
+
+<script>
+  function switchTab(evt, tabName) {
+    const tabContents = document.getElementsByClassName("tab-content");
+    for (let i = 0; i < tabContents.length; i++) {
+      tabContents[i].classList.remove("active");
+    }
+    const modalTabs = document.getElementsByClassName("modal-tab");
+    for (let i = 0; i < modalTabs.length; i++) {
+      modalTabs[i].classList.remove("active");
+    }
+    document.getElementById(tabName).classList.add("active");
+    evt.currentTarget.classList.add("active");
+    // Clear dynamic info on tab switch
+    document.getElementById('checkoutInfo').innerHTML = '';
+    document.getElementById('checkinInfo').innerHTML = '';
+  }
+
+  async function lookupWeapon(input, infoId) {
+    const serial = input.value.trim();
+    const infoDiv = document.getElementById(infoId);
+    if (serial.length < 3) {
+      infoDiv.innerHTML = '';
+      return;
+    }
+
+    try {
+      const response = await fetch(`/assets/lookup/${serial}`);
+      const data = await response.json();
+      const submitBtn = input.closest('form').querySelector('button[type="submit"]');
+
+      if (data.success) {
+        const asset = data.asset;
+        const statusClass = asset.status.toLowerCase().replace(/ /g, '-');
+        
+        infoDiv.innerHTML = `
+          <div class="lookup-success">
+            <strong>✅ ${asset.name}</strong> (${asset.category})<br/>
+            <span class="status-badge status-${statusClass}">STATUS: ${asset.status}</span>
+            <span class="condition-${asset.condition.toLowerCase()}">COND: ${asset.condition}</span>
+          </div>
+        `;
+
+        // Validation based on type
+        const type = input.closest('form').querySelector('input[name="type"]').value;
+        if (type === 'Issue' && asset.status !== 'Available') {
+          infoDiv.innerHTML += `<div class="lookup-error" style="margin-top:5px; color:var(--red);">⚠️ ERROR: Weapon is ${asset.status}</div>`;
+        } else if (type === 'Return' && asset.status === 'Available') {
+          infoDiv.innerHTML += `<div class="lookup-error" style="margin-top:5px; color:var(--red);">⚠️ ERROR: This weapon is already checked in.</div>`;
+        } else if (type === 'Issue' && asset.maxCheckout > 0 && asset.checkoutCount >= asset.maxCheckout) {
+          infoDiv.innerHTML += `<div class="lookup-error" style="margin-top:5px; color:var(--red);">🚫 LIMIT MET: Requires maintenance. Cannot issue.</div>`;
+        } else {
+          // It's valid, user can click Add
+          input.dataset.weaponName = asset.name;
+          input.dataset.valid = 'true';
+        }
+      } else {
+        infoDiv.innerHTML = `<div class="lookup-error" style="color:var(--red);">❌ Weapon not found in registry.</div>`;
+        input.dataset.valid = 'false';
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // ---- DYNAMIC CART SYSTEM ----
+  let issueCart = [];
+  let returnCart = [];
+
+  function addWeaponToCart(type) {
+    const inputId = type === 'issue' ? 'checkoutSerial' : 'checkinSerial';
+    const input = document.getElementById(inputId);
+    const serial = input.value.trim().toUpperCase();
+    
+    if (!serial) return;
+    if (input.dataset.valid !== 'true') {
+      alert('Cannot add invalid or blocked weapon.');
+      return;
+    }
+    
+    const cart = type === 'issue' ? issueCart : returnCart;
+    if (cart.find(w => w.serial === serial)) {
+      alert('Weapon already in the list.');
+      return;
+    }
+
+    cart.push({ serial: serial, name: input.dataset.weaponName });
+    
+    // Clear input
+    input.value = '';
+    input.dataset.valid = 'false';
+    document.getElementById(type === 'issue' ? 'checkoutInfo' : 'checkinInfo').innerHTML = '';
+    
+    renderCart(type);
+  }
+
+  function removeFromCart(type, serial) {
+    if (type === 'issue') {
+      issueCart = issueCart.filter(w => w.serial !== serial);
+    } else {
+      returnCart = returnCart.filter(w => w.serial !== serial);
+    }
+    renderCart(type);
+  }
+
+  function renderCart(type) {
+    const cart = type === 'issue' ? issueCart : returnCart;
+    const itemsDiv = document.getElementById(type === 'issue' ? 'checkoutCartItems' : 'checkinCartItems');
+    const inputsDiv = document.getElementById(type === 'issue' ? 'checkoutHiddenInputs' : 'checkinHiddenInputs');
+    const areaDiv = document.getElementById(type === 'issue' ? 'checkoutCartArea' : 'checkinCartArea');
+    const countSpan = document.getElementById(type === 'issue' ? 'checkoutCartCount' : 'checkinCartCount');
+    const submitBtn = document.querySelector(`#${type === 'issue' ? 'checkoutTab' : 'checkinTab'} button[type="submit"]`);
+
+    itemsDiv.innerHTML = '';
+    inputsDiv.innerHTML = '';
+    countSpan.textContent = cart.length;
+
+    if (cart.length > 0) {
+      areaDiv.style.display = 'block';
+      submitBtn.disabled = false;
+      cart.forEach(w => {
+        // UI Chip
+        itemsDiv.innerHTML += `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.4rem; background: white;">
+            <div><strong style="margin-right: 8px;">${w.name}</strong> <code class="asset-id">${w.serial}</code></div>
+            <button type="button" onclick="removeFromCart('${type}', '${w.serial}')" style="background: none; border: none; color: var(--red); font-weight: 800; cursor: pointer; padding: 0 0.5rem;">✕</button>
+          </div>
+        `;
+        // Hidden input for the backend array
+        inputsDiv.innerHTML += `<input type="hidden" name="serialNumbers[]" value="${w.serial}">`;
+      });
+    } else {
+      areaDiv.style.display = 'none';
+      submitBtn.disabled = true; // Block submission if empty
+    }
+  }
+
+  // Disable submit buttons by default until cart has items
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('#checkoutTab button[type="submit"]').disabled = true;
+    document.querySelector('#checkinTab button[type="submit"]').disabled = true;
+  });
+</script>
 <%- include('../partials/footer') %>

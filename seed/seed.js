@@ -25,20 +25,23 @@ async function seed() {
 
     // Create Users
     const users = await User.create([
-      { name: 'John Doe', badgeNumber: 'ADMIN-001', password: 'admin123', role: 'admin', unit: 'HQ Command', rank: 'Colonel' },
-      { name: 'James Smith', badgeNumber: 'OFF-001', password: 'officer123', role: 'officer', unit: 'Alpha Company', rank: 'Captain' },
-      { name: 'Robert Brown', badgeNumber: 'SOL-001', password: 'soldier123', role: 'soldier', unit: 'Maintenance Wing', rank: 'Sergeant' },
-      { name: 'Alice Wilson', badgeNumber: 'SOL-002', password: 'soldier456', role: 'soldier', unit: 'Bravo Company', rank: 'Corporal' },
+      { name: 'John Doe', username: 'admin', badgeNumber: 'ADMIN-001', password: 'admin123', role: 'admin', unit: 'HQ Command', rank: 'Colonel', email: 'admin@military.gov' },
+      { name: 'James Smith', username: 'officer1', badgeNumber: 'OFF-001', password: 'officer123', role: 'officer', unit: 'Alpha Company', rank: 'Captain', email: 'jsmith@military.gov' },
+      { name: 'Robert Brown', username: 'sergeant_brown', badgeNumber: 'SOL-001', password: 'soldier123', role: 'soldier', unit: 'Maintenance Wing', rank: 'Sergeant', email: 'rbrown@military.gov' },
+      { name: 'Alice Wilson', username: 'corporal_alice', badgeNumber: 'SOL-002', password: 'soldier456', role: 'soldier', unit: 'Bravo Company', rank: 'Corporal', email: 'awilson@military.gov' },
     ]);
     console.log(`👥 Created ${users.length} users`);
 
     // Create Assets
     const assetData = [
-      { assetId: 'WPN-AK47-001-UNIT52', name: 'AK-47 Assault Rifle', type: 'Firearm', model: 'AK-47', serialNumber: 'SR-1001', unit: 'Alpha Company', location: 'Arms Room A', status: 'Available', condition: 'Excellent', description: 'Standard issue assault rifle', registeredBy: users[0]._id },
-      { assetId: 'WPN-AK47-002-UNIT52', name: 'AK-47 Assault Rifle', type: 'Firearm', model: 'AK-47', serialNumber: 'SR-1002', unit: 'Alpha Company', location: 'Arms Room A', status: 'Deployed', condition: 'Good', description: 'Standard issue assault rifle', registeredBy: users[0]._id, currentHolder: users[1]._id },
-      { assetId: 'VEH-HMMWV-001-UNIT52', name: 'Humvee', type: 'Vehicle', model: 'M1114', serialNumber: 'VH-2001', unit: 'HQ Command', location: 'Garage 1', status: 'Maintenance', condition: 'Fair', description: 'Armoured multi-purpose vehicle', registeredBy: users[0]._id },
-      { assetId: 'COM-RADIO-001-UNIT52', name: 'Tactical Radio', type: 'Communication', model: 'RF-7800', serialNumber: 'CM-3001', unit: 'Alpha Company', location: 'Comms Wing', status: 'Available', condition: 'Excellent', description: 'Handheld tactical radio', registeredBy: users[0]._id },
-      { assetId: 'AMMO-556-001-UNIT52', name: '5.56mm Ammo Case', type: 'Ammunition', model: 'M855', serialNumber: 'AM-4001', unit: 'Alpha Company', location: 'Ammo Dump', status: 'Available', condition: 'Excellent', description: '5.56x45mm NATO ammunition case', registeredBy: users[0]._id },
+      { assetId: 'WPN-AK47-001-UNIT52', name: 'AK-47 Assault Rifle', category: 'Weapon', model: 'AK-47', serialNumber: 'SR-1001', unit: 'Alpha Company', location: 'Arms Room A', status: 'Available', condition: 'Excellent', description: 'Standard issue assault rifle', createdBy: users[0]._id, acquisitionCost: 45000 },
+      { assetId: 'WPN-M4A1-001-UNIT52', name: 'M4A1 Carbine', category: 'Weapon', model: 'M4A1', serialNumber: 'SR-2001', unit: 'Alpha Company', location: 'Arms Room A', status: 'Available', condition: 'Excellent', description: 'Special Ops Carbine', createdBy: users[0]._id, acquisitionCost: 65000 },
+      { assetId: 'WPN-SVD-001-UNIT52', name: 'SVD Sniper Rifle', category: 'Weapon', model: 'SVD', serialNumber: 'SR-3001', unit: 'Alpha Company', location: 'Arms Room B', status: 'Available', condition: 'Good', description: 'Designated marksman rifle', createdBy: users[0]._id, acquisitionCost: 85000 },
+      { assetId: 'WPN-GLK-001-UNIT52', name: 'Glock 17 Sidearm', category: 'Weapon', model: 'Glock 17', serialNumber: 'SR-4001', unit: 'Alpha Company', location: 'Sidearm Rack', status: 'Available', condition: 'Excellent', description: 'Standard officer sidearm', createdBy: users[0]._id, acquisitionCost: 12000 },
+      { assetId: 'WPN-AK12-001-UNIT52', name: 'AK-12 Assault Rifle', category: 'Weapon', model: 'AK-12', serialNumber: 'SR-5001', unit: 'Alpha Company', location: 'Arms Room A', status: 'In Use', condition: 'Good', description: 'Modern assault rifle', createdBy: users[0]._id, assignedTo: users[1]._id, acquisitionCost: 55000 },
+      { assetId: 'VEH-HMMWV-001-UNIT52', name: 'Humvee', category: 'Vehicle', model: 'M1114', serialNumber: 'VH-2001', unit: 'HQ Command', location: 'Garage 1', status: 'Under Maintenance', condition: 'Fair', description: 'Armoured multi-purpose vehicle', createdBy: users[0]._id, acquisitionCost: 1500000 },
+      { assetId: 'COM-RADIO-001-UNIT52', name: 'Tactical Radio', category: 'Communication', model: 'RF-7800', serialNumber: 'CM-3001', unit: 'Alpha Company', location: 'Comms Wing', status: 'Available', condition: 'Excellent', description: 'Handheld tactical radio', createdBy: users[0]._id, acquisitionCost: 120000 },
+      { assetId: 'AMMO-556-001-UNIT52', name: '5.56mm Ammo Case', category: 'Ammunition', model: 'M855', serialNumber: 'AM-4001', unit: 'Alpha Company', location: 'Ammo Dump', status: 'Available', condition: 'Excellent', description: '5.56x45mm NATO ammunition case', createdBy: users[0]._id, acquisitionCost: 15000 },
     ];
 
     const assets = await Asset.create(assetData);
@@ -49,7 +52,7 @@ async function seed() {
       asset: assets[1]._id,
       fromUser: users[0]._id,
       toUser: users[1]._id,
-      transactionType: 'checkout',
+      type: 'checkout',
       location: 'Main Armoury',
       missionCode: 'OP-SHADOW',
       remarks: 'Standard deployment for routine patrol',
@@ -61,17 +64,19 @@ async function seed() {
       asset: assets[2]._id,
       scheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days later
       type: 'Repair',
+      priority: 'High',
       status: 'Scheduled',
-      technician: 'Sgt. Robert Brown',
-      notes: 'Engine diagnostics and oil change',
-      reportedBy: users[0]._id,
+      description: 'Engine diagnostics and oil change',
+      assignedTechnician: users[2]._id,
+      requestedBy: users[0]._id,
+      cost: 5000,
     });
     console.log('🛠️  Created maintenance records');
 
     // Create Audit Logs (will be auto-chained by pre-save hook)
     await AuditLog.create([
-      { action: 'INITIAL_SEED', performedBy: users[0]._id, assetId: assets[0]._id, details: 'System seeded with default data' },
-      { action: 'ASSET_REGISTRATION', performedBy: users[0]._id, assetId: assets[1]._id, details: 'Manually registered AK-47' },
+      { action: 'INITIAL_SEED', performedBy: users[0]._id, assetId: assets[0]._id, targetModel: 'System', details: 'System seeded with default data', ipAddress: '127.0.0.1' },
+      { action: 'ASSET_REGISTRATION', performedBy: users[0]._id, assetId: assets[1]._id, targetModel: 'Asset', targetId: assets[1]._id, details: 'Manually registered AK-47', ipAddress: '127.0.0.1' },
     ]);
     console.log('📋 Created audit log entries (tamper-proof chain initialized)');
 

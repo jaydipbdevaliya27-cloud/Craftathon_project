@@ -1,0 +1,70 @@
+[
+  {
+    "_id": "69d0d63e44d6644d4f5b6a10",
+    "action": "LOGIN",
+    "performedBy": "69cfe6ab35298332f38f178d",
+    "assetId": null,
+    "details": "admin logged in",
+    "ipAddress": "::1",
+    "previousHash": "8c7cc0d0b5d181863e26e035f3f981a1ecc3f3ae644ed152175e13f3844387a5",
+    "timestamp": "2026-04-04T09:13:34.624Z",
+    "createdAt": "2026-04-04T09:13:34.628Z",
+    "updatedAt": "2026-04-04T09:13:34.628Z",
+    "currentHash": "ead95fee00c2f7acda2fd44279ab39ff1ff3d5a64ae5ba370182b93756839825",
+    "__v": 0
+  },
+  {
+    "_id": "69d0d627b0fb045060947664",
+    "action": "LOGOUT",
+    "performedBy": "69cfe6ab35298332f38f178d",
+    "assetId": null,
+    "details": "User logged out",
+    "previousHash": "7093291cfd1cbc6a0c3cc460db6b744129e7ba5044f5acc99bb6c1ac554519e6",
+    "timestamp": "2026-04-04T09:13:11.559Z",
+    "createdAt": "2026-04-04T09:13:11.565Z",
+    "updatedAt": "2026-04-04T09:13:11.565Z",
+    "currentHash": "8c7cc0d0b5d181863e26e035f3f981a1ecc3f3ae644ed152175e13f3844387a5",
+    "__v": 0
+  },
+  {
+    "_id": "69d0d3616e014b64804b5923",
+    "action": "LOGIN",
+    "performedBy": "69cfe6ab35298332f38f178d",
+    "assetId": null,
+    "details": "admin logged in",
+    "ipAddress": "::1",
+    "previousHash": "291fb794af6b54640370c13274b2e9264a2408eb3459b2c2d63ad7f828397a29",
+    "timestamp": "2026-04-04T09:01:21.431Z",
+    "createdAt": "2026-04-04T09:01:21.433Z",
+    "updatedAt": "2026-04-04T09:01:21.433Z",
+    "currentHash": "7093291cfd1cbc6a0c3cc460db6b744129e7ba5044f5acc99bb6c1ac554519e6",
+    "__v": 0
+  },
+  {
+    "_id": "69d0d3506e014b64804b591e",
+    "action": "LOGOUT",
+    "performedBy": "69cfe6ab35298332f38f178d",
+    "assetId": null,
+    "details": "User logged out",
+    "previousHash": "cba21f7b62465631ed80438e5332abadb0cad9284c24e40c6ea731004f982822",
+    "timestamp": "2026-04-04T09:01:04.791Z",
+    "createdAt": "2026-04-04T09:01:04.794Z",
+    "updatedAt": "2026-04-04T09:01:04.794Z",
+    "currentHash": "291fb794af6b54640370c13274b2e9264a2408eb3459b2c2d63ad7f828397a29",
+    "__v": 0
+  },
+  {
+    "_id": "69d0d1f241b28bb5eac47287",
+    "action": "LOGIN",
+    "performedBy": "69cfe6ab35298332f38f178d",
+    "assetId": null,
+    "details": "admin logged in",
+    "ipAddress": "::1",
+    "previousHash": "0b6340cc752760777efa24ed084ab7b4eb961d32639c36ff4aad5fbc17e94397",
+    "timestamp": "2026-04-04T08:55:14.907Z",
+    "createdAt": "2026-04-04T08:55:14.907Z",
+    "updatedAt": "2026-04-04T08:55:14.907Z",
+    "currentHash": "cba21f7b62465631ed80438e5332abadb0cad9284c24e40c6ea731004f982822",
+    "__v": 0
+  }
+]

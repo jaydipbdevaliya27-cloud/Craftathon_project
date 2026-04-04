@@ -1,0 +1,233 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<main class="main-content">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">MAINTENANCE HISTORY</h1>
+      <p class="page-subtitle">Complete service and repair record log</p>
+    </div>
+    <a href="/technician/dashboard" class="btn btn-ghost">← DASHBOARD</a>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">ALL MAINTENANCE RECORDS</h2>
+      <span class="status-badge" style="background: var(--primary-soft); color: var(--primary);">
+        <%= history.length %> TOTAL ENTRIES
+      </span>
+    </div>
+    <div class="card-body p-0">
+      <% if (history.length === 0) { %>
+        <div style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary);">
+          <div style="font-size: 3.5rem; margin-bottom: 1rem;">📁</div>
+          <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">No Records Yet</h3>
+          <p>No maintenance records are available yet. Complete tasks to see them here.</p>
+        </div>
+      <% } else { %>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>MAINT. ID</th>
+                <th>WEAPON</th>
+                <th>TYPE</th>
+                <th>PRIORITY</th>
+                <th>STATUS</th>
+                <th>COMPLETED ON</th>
+                <th>COST</th>
+                <th>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% history.forEach(h => { %>
+                <tr>
+                  <td><code class="asset-id"><%= h.maintenanceId %></code></td>
+                  <td>
+                    <strong><%= h.asset ? h.asset.name : 'N/A' %></strong><br/>
+                    <code class="asset-id" style="font-size: 0.7rem;"><%= h.asset ? h.asset.serialNumber : '' %></code>
+                  </td>
+                  <td><span class="badge badge-type"><%= h.type %></span></td>
+                  <td>
+                    <span class="priority-badge priority-<%= h.priority ? h.priority.toLowerCase() : 'medium' %>">
+                      <%= h.priority %>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status-badge status-<%= h.status ? h.status.toLowerCase().replace(/ /g, '-') : '' %>">
+                      <%= h.status %>
+                    </span>
+                  </td>
+                  <td><%= h.completionDate ? new Date(h.completionDate).toLocaleDateString() : '—' %></td>
+                  <td><strong>₹<%= (h.cost || 0).toLocaleString() %></strong></td>
+                  <td>
+                    <button class="btn btn-xs btn-outline" onclick="openView('<%= h._id %>')">VIEW DETAILS</button>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+
+<!-- Maintenance Details Modal -->
+<div id="viewModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this) this.style.display='none'">
+  <div class="modal" style="max-width: 720px; width: 95%;">
+    <div class="modal-header" style="background: var(--primary-soft); border-bottom: 2px solid var(--primary);">
+      <div>
+        <h2 style="font-size: 1rem; font-weight: 800; letter-spacing: 1px; color: var(--primary);">MAINTENANCE RECORD</h2>
+        <p id="modal-id" style="margin: 0; font-size: 0.8rem; color: var(--text-secondary); font-family: monospace;"></p>
+      </div>
+      <button onclick="document.getElementById('viewModal').style.display='none'" class="modal-close">✕</button>
+    </div>
+
+    <div class="modal-body" style="padding: 0; max-height: 70vh; overflow-y: auto;">
+      <!-- Weapon Info Section -->
+      <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-light);">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+          <span style="font-size: 1.2rem;">🔫</span>
+          <h3 style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px; margin: 0;">Weapon Information</h3>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div class="info-cell"><span class="info-label">Name</span><span id="v-asset-name" class="info-value"></span></div>
+          <div class="info-cell"><span class="info-label">Asset ID</span><code id="v-asset-id" class="asset-id" style="font-size: 0.8rem;"></code></div>
+          <div class="info-cell"><span class="info-label">Serial No</span><code id="v-asset-serial" class="asset-id" style="font-size: 0.8rem;"></code></div>
+          <div class="info-cell"><span class="info-label">Category</span><span id="v-asset-category" class="info-value"></span></div>
+          <div class="info-cell"><span class="info-label">Status</span><span id="v-asset-status" class="info-value"></span></div>
+          <div class="info-cell"><span class="info-label">Condition</span><span id="v-asset-condition" class="info-value"></span></div>
+          <div class="info-cell"><span class="info-label">Location</span><span id="v-asset-location" class="info-value"></span></div>
+        </div>
+      </div>
+
+      <!-- Maintenance Info Section -->
+      <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-light); background: #fdfdfd;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+          <span style="font-size: 1.2rem;">🛠️</span>
+          <h3 style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px; margin: 0;">Maintenance Record</h3>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div class="info-cell"><span class="info-label">Type</span><span id="v-mnt-type" class="info-value"></span></div>
+          <div class="info-cell"><span class="info-label">Priority</span><span id="v-mnt-priority" class="info-value"></span></div>
+          <div class="info-cell"><span class="info-label">Status</span><span id="v-mnt-status" class="info-value"></span></div>
+          <div class="info-cell"><span class="info-label">Actual Cost</span><span id="v-mnt-cost" class="info-value" style="font-weight: 800; color: var(--primary);"></span></div>
+          <div class="info-cell"><span class="info-label">Scheduled</span><span id="v-mnt-sched" class="info-value"></span></div>
+          <div class="info-cell"><span class="info-label">Completed</span><span id="v-mnt-comp" class="info-value"></span></div>
+        </div>
+        <div style="margin-top: 1rem;">
+          <div class="info-cell" style="flex-direction: column; align-items: flex-start; gap: 0.25rem;">
+            <span class="info-label">Parts Replaced</span>
+            <span id="v-mnt-parts" class="info-value"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description & Notes -->
+      <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-light);">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+          <span style="font-size: 1.2rem;">📋</span>
+          <h3 style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px; margin: 0;">Notes & Description</h3>
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <p class="info-label" style="margin-bottom: 0.35rem;">DESCRIPTION</p>
+          <p id="v-mnt-desc" style="font-size: 0.9rem; color: var(--text-primary); background: var(--bg-secondary); padding: 0.75rem; border-radius: 8px; margin: 0; line-height: 1.6;"></p>
+        </div>
+        <div>
+          <p class="info-label" style="margin-bottom: 0.35rem;">COMPLETION NOTES</p>
+          <p id="v-mnt-notes" style="font-size: 0.9rem; color: var(--text-primary); background: var(--bg-secondary); padding: 0.75rem; border-radius: 8px; margin: 0; line-height: 1.6;"></p>
+        </div>
+      </div>
+
+      <!-- Personnel -->
+      <div style="padding: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+          <span style="font-size: 1.2rem;">👤</span>
+          <h3 style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px; margin: 0;">Personnel</h3>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div class="info-cell"><span class="info-label">Requested By</span><span id="v-mnt-req" class="info-value"></span></div>
+          <div class="info-cell"><span class="info-label">Assigned Tech</span><span id="v-mnt-tech" class="info-value"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer" style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-light); display: flex; justify-content: flex-end;">
+      <button onclick="document.getElementById('viewModal').style.display='none'" class="btn btn-primary">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.modal-close:hover { background: var(--red-soft); color: var(--red); }
+.info-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+}
+.info-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+.info-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+</style>
+
+<script>
+const records = <%- JSON.stringify(history || []) %>;
+
+function openView(id) {
+  const r = records.find(rec => rec._id === id);
+  if (!r) return;
+
+  document.getElementById('modal-id').textContent = r.maintenanceId || '';
+
+  // Weapon Details
+  document.getElementById('v-asset-name').textContent = r.asset ? r.asset.name : 'N/A';
+  document.getElementById('v-asset-id').textContent = r.asset ? r.asset.assetId : 'N/A';
+  document.getElementById('v-asset-serial').textContent = r.asset ? r.asset.serialNumber : 'N/A';
+  document.getElementById('v-asset-category').textContent = r.asset ? r.asset.category : 'N/A';
+  document.getElementById('v-asset-status').textContent = r.asset ? r.asset.status : 'N/A';
+  document.getElementById('v-asset-condition').textContent = r.asset ? r.asset.condition : 'N/A';
+  document.getElementById('v-asset-location').textContent = r.asset ? r.asset.location : 'N/A';
+
+  // Maintenance Details
+  document.getElementById('v-mnt-type').textContent = r.type || 'N/A';
+  document.getElementById('v-mnt-priority').textContent = r.priority || 'N/A';
+  document.getElementById('v-mnt-status').textContent = r.status || 'N/A';
+  document.getElementById('v-mnt-cost').textContent = '₹' + (r.cost || 0).toLocaleString();
+  document.getElementById('v-mnt-sched').textContent = r.scheduledDate ? new Date(r.scheduledDate).toLocaleDateString() : 'N/A';
+  document.getElementById('v-mnt-comp').textContent = r.completionDate ? new Date(r.completionDate).toLocaleDateString() : 'Pending';
+  document.getElementById('v-mnt-parts').textContent = (r.partsReplaced && r.partsReplaced.length > 0) ? r.partsReplaced.join(', ') : 'None';
+  document.getElementById('v-mnt-desc').textContent = r.description || 'No description provided.';
+  document.getElementById('v-mnt-notes').textContent = r.notes || 'No notes recorded.';
+
+  // Personnel
+  document.getElementById('v-mnt-req').textContent = r.requestedBy ? ((r.requestedBy.rank || '') + ' ' + r.requestedBy.username).trim() : 'N/A';
+  document.getElementById('v-mnt-tech').textContent = r.assignedTechnician ? ((r.assignedTechnician.rank || '') + ' ' + r.assignedTechnician.username).trim() : 'Not Assigned';
+
+  document.getElementById('viewModal').style.display = 'flex';
+}
+</script>
+
+<%- include('../partials/footer') %>

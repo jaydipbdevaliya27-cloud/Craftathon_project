@@ -55,6 +55,7 @@ app.use('/assets', isAuthenticated, require('./routes/assets'));
 app.use('/transactions', isAuthenticated, require('./routes/transactions'));
 app.use('/audit', isAuthenticated, require('./routes/audit'));
 app.use('/maintenance', isAuthenticated, require('./routes/maintenance'));
+app.use('/technician', isAuthenticated, require('./routes/technician'));
 
 // Dashboard route
 app.get('/dashboard', isAuthenticated, async (req, res) => {
@@ -64,7 +65,7 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
   const AuditLog = require('./models/AuditLog');
   try {
     const [totalAssets, availableAssets, inUseAssets, maintenanceAssets,
-           recentTransactions, recentLogs, maintenanceDue, byCategory] = await Promise.all([
+           recentTransactions, recentLogs, maintenanceDue, byCategory, checkoutAlerts] = await Promise.all([
       Asset.countDocuments(),
       Asset.countDocuments({ status: 'Available' }),
       Asset.countDocuments({ status: 'In Use' }),
@@ -73,6 +74,7 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
       AuditLog.find().sort({ timestamp: -1 }).limit(8).populate('performedBy', 'username'),
       Maintenance.countDocuments({ status: { $in: ['Scheduled', 'In Progress'] } }),
       Asset.aggregate([{ $group: { _id: '$category', count: { $sum: 1 } } }]),
+      Asset.find({ checkoutLimitTriggered: true }).select('name serialNumber checkoutCount maxCheckout status').limit(10),
     ]);
     res.render('dashboard/index', {
       title: 'Dashboard | DefenceTrack',
@@ -80,6 +82,7 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
       recentTransactions,
       recentLogs,
       byCategory,
+      checkoutAlerts,
     });
   } catch (err) {
     console.error(err);

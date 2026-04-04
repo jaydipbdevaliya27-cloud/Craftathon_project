@@ -6,22 +6,22 @@ const assetSchema = new mongoose.Schema({
     unique: true,
     required: [true, 'Asset ID is required'],
     trim: true,
-    // Example: WPN-AK47-001-UNIT52
+    default: () => `WPN-${Math.random().toString(36).substr(2, 6).toUpperCase()}`
   },
   name: {
     type: String,
     required: [true, 'Asset name is required'],
     trim: true,
   },
-  type: {
+  category: {
     type: String,
-    enum: ['Firearm', 'Vehicle', 'Communication', 'Ammunition', 'Equipment'],
+    enum: ['Weapon', 'Vehicle', 'Communication', 'Medical', 'Ammunition', 'Electronics', 'Protective Gear', 'Other'],
     required: true,
   },
   model: {
     type: String,
-    required: [true, 'Model is required'],
     trim: true,
+    default: 'Standard',
   },
   serialNumber: {
     type: String,
@@ -29,15 +29,24 @@ const assetSchema = new mongoose.Schema({
     required: [true, 'Serial number is required'],
     trim: true,
   },
+  manufacturer: String,
+  acquisitionCost: {
+    type: Number,
+    default: 0,
+  },
+  acquisitionDate: {
+    type: Date,
+    default: Date.now,
+  },
+  assignedTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null,
+  },
   unit: {
     type: String,
     required: [true, 'Unit is required'],
     trim: true,
-  },
-  currentHolder: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: null,
   },
   location: {
     type: String,
@@ -46,7 +55,7 @@ const assetSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Available', 'Deployed', 'Maintenance', 'Lost'],
+    enum: ['Available', 'In Use', 'Under Maintenance', 'Decommissioned', 'Lost'],
     default: 'Available',
   },
   condition: {
@@ -59,15 +68,28 @@ const assetSchema = new mongoose.Schema({
     trim: true,
     default: '',
   },
-  registeredBy: {
+  notes: String,
+  tags: [String],
+  qrCode: String,
+  maxCheckout: {
+    type: Number,
+    default: 0,  // 0 means no limit set
+    min: 0,
+  },
+  checkoutCount: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  checkoutLimitTriggered: {
+    type: Boolean,
+    default: false,
+  },
+  createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+}, { timestamps: true, strictPopulate: false });
 
 module.exports = mongoose.model('Asset', assetSchema);

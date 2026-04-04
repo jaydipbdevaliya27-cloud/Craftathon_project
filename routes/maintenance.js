@@ -14,16 +14,18 @@ router.get('/', async (req, res) => {
     if (status) query.status = status;
     if (priority) query.priority = priority;
     const records = await Maintenance.find(query)
-      .populate('asset', 'name assetId category')
+      .populate('asset')
       .populate('requestedBy', 'username rank')
       .populate('assignedTechnician', 'username rank')
       .sort({ scheduledDate: 1 });
+    const techniciansList = await User.find({ role: 'technician' }, 'name rank username');
     res.render('maintenance/index', {
       title: 'Maintenance | DefenceTrack',
       records,
       filters: { status, priority },
       statuses: ['Scheduled', 'In Progress', 'Completed', 'Cancelled'],
       priorities: ['Low', 'Medium', 'High', 'Critical'],
+      techniciansList,
     });
   } catch (err) {
     console.error(err);

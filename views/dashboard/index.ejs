@@ -6,6 +6,42 @@
     <p class="page-subtitle">Overview of Defence Asset Status</p>
   </div>
 
+  <%# ---- CHECKOUT LIMIT ALERT PANEL ---- %>
+  <% if (checkoutAlerts && checkoutAlerts.length > 0) { %>
+  <div class="alert-panel" style="background: #fffbeb; border: 2px solid #f59e0b; border-radius: 12px; padding: 1.25rem 1.75rem; margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+      <span style="font-size: 1.5rem;">⚠️</span>
+      <div>
+        <h3 style="margin: 0; font-size: 1rem; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 1px;">CHECKOUT LIMIT ALERTS</h3>
+        <p style="margin: 0; color: #b45309; font-size: 0.85rem;"><%= checkoutAlerts.length %> asset(s) have reached their maximum checkout limit and are scheduled for mandatory maintenance.</p>
+      </div>
+      <a href="/maintenance" class="btn btn-sm" style="margin-left: auto; background: #f59e0b; color: white;">VIEW MAINTENANCE</a>
+    </div>
+    <table class="table" style="background: white; border-radius: 8px; overflow: hidden;">
+      <thead>
+        <tr>
+          <th>WEAPON</th>
+          <th>SERIAL NO</th>
+          <th>CHECKOUTS</th>
+          <th>MAX LIMIT</th>
+          <th>STATUS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% checkoutAlerts.forEach(a => { %>
+        <tr>
+          <td><strong><%= a.name %></strong></td>
+          <td><code class="asset-id"><%= a.serialNumber %></code></td>
+          <td><span style="font-weight: 800; color: #d97706;"><%= a.checkoutCount %></span></td>
+          <td><%= a.maxCheckout %></td>
+          <td><span class="status-badge status-under-maintenance"><%= a.status %></span></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+
   <!-- Stats Grid -->
   <div class="stats-grid">
     <div class="stat-card stat-total">
@@ -64,7 +100,7 @@
             <tbody>
               <% recentTransactions.forEach(txn => { %>
                 <tr>
-                  <td><span class="badge badge-<%= txn.type.toLowerCase() %>"><%= txn.type %></span></td>
+                  <td><span class="badge badge-<%= txn.type ? txn.type.toLowerCase() : 'unknown' %>"><%= txn.type || 'N/A' %></span></td>
                   <td><%= txn.asset ? txn.asset.name : 'N/A' %></td>
                   <td><%= txn.toUser ? txn.toUser.username : '—' %></td>
                   <td><%= new Date(txn.createdAt).toLocaleDateString() %></td>
@@ -82,22 +118,30 @@
         <h2 class="card-title">RECENT ACTIVITY</h2>
         <a href="/audit" class="btn btn-sm btn-outline">VIEW LOG</a>
       </div>
-      <div class="card-body">
+      <div class="card-body p-0">
         <% if (recentLogs.length === 0) { %>
-          <p class="empty-msg">No activity recorded.</p>
+          <p class="empty-msg" style="padding: 1.5rem;">No activity recorded.</p>
         <% } else { %>
-          <ul class="activity-list">
-            <% recentLogs.forEach(log => { %>
-              <li class="activity-item">
-                <span class="activity-dot"></span>
-                <div class="activity-content">
-                  <span class="activity-action"><%= log.action %></span>
-                  <span class="activity-user">by <%= log.performedBy ? log.performedBy.username : 'Unknown' %></span>
-                  <span class="activity-time"><%= new Date(log.timestamp).toLocaleString() %></span>
-                </div>
-              </li>
-            <% }) %>
-          </ul>
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>ACTION</th>
+                  <th>PERFORMED BY</th>
+                  <th>TIME</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% recentLogs.forEach(log => { %>
+                  <tr>
+                    <td><strong><%= log.action %></strong></td>
+                    <td><%= log.performedBy ? log.performedBy.username : 'Unknown' %></td>
+                    <td><small class="text-muted"><%= new Date(log.timestamp).toLocaleString() %></small></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
         <% } %>
       </div>
     </div>
@@ -117,7 +161,7 @@
               <div class="category-bar-item">
                 <span class="category-name"><%= cat._id %></span>
                 <div class="bar-bg">
-                  <div class="bar-fill" style="width: <%= (cat.count/maxCount*100).toFixed(0) %>%"></div>
+                  <div class="bar-fill" style="width: <%= (cat.count/maxCount*100).toFixed(0) + '%' %>"></div>
                 </div>
                 <span class="category-count"><%= cat.count %></span>
               </div>

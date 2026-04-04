@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({
+  transactionId: {
+    type: String,
+    unique: true,
+    default: () => `TXN-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+  },
   asset: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Asset',
@@ -9,37 +14,47 @@ const transactionSchema = new mongoose.Schema({
   fromUser: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false,
   },
   toUser: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+    required: false,
+  },
+  type: {
+    type: String,
+    enum: ['Issue', 'Return', 'Transfer', 'Maintenance', 'Decommission', 'checkout', 'checkin', 'transfer'],
     required: true,
   },
-  transactionType: {
+  fromLocation: String,
+  toLocation: String,
+  location: String,
+  status: {
     type: String,
-    enum: ['checkout', 'checkin', 'transfer'],
-    required: true,
+    enum: ['Pending', 'Approved', 'Completed', 'Rejected', 'Cancelled'],
+    default: 'Approved',
   },
-  location: {
+  purpose: String,
+  missionCode: String,
+  expectedReturnDate: Date,
+  issueCondition: {
     type: String,
-    required: [true, 'Location is required'],
-    trim: true,
+    enum: ['Excellent', 'Good', 'Fair', 'Poor'],
   },
-  missionCode: {
+  returnCondition: {
     type: String,
-    trim: true,
-    default: '',
+    enum: ['Excellent', 'Good', 'Fair', 'Poor'],
   },
-  remarks: {
-    type: String,
-    trim: true,
-    default: '',
+  notes: String,
+  remarks: String,
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
   },
-  timestamp: {
-    type: Date,
-    default: Date.now,
+  authorizedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
   },
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

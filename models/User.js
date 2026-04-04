@@ -7,6 +7,18 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Name is required'],
     trim: true,
   },
+  username: {
+    type: String,
+    required: [true, 'Username is required'],
+    unique: true,
+    trim: true,
+  },
+  email: {
+    type: String,
+    unique: true,
+    sparse: true, // Allow multiple users with no email if needed
+    trim: true,
+  },
   badgeNumber: {
     type: String,
     required: [true, 'Badge number is required'],
@@ -20,7 +32,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['soldier', 'officer', 'admin'],
+    enum: ['soldier', 'officer', 'technician', 'admin', 'viewer'],
     default: 'soldier',
   },
   unit: {
@@ -37,11 +49,8 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  lastLogin: Date,
+}, { timestamps: true });
 
 // Hash password before save (Mongoose 9: async hooks resolve via returned promise, no next())
 userSchema.pre('save', async function () {

@@ -1,0 +1,251 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<main class="main-content">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">CUSTODY HISTORY & LIFECYCLE</h1>
+      <p class="page-subtitle">Complete chronological record — search by serial or weapon class</p>
+    </div>
+  </div>
+
+  <!-- Dual Search Card -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <!-- Search Mode Toggle -->
+      <div style="display: flex; gap: 0; margin-bottom: 1.5rem; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; width: fit-content;">
+        <button onclick="setMode('serial')" id="btn-serial"
+          style="padding: 0.6rem 1.5rem; border: none; cursor: pointer; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px; transition: all 0.2s;
+          background: <%= searchMode === 'name' ? 'var(--bg-secondary)' : 'var(--primary)' %>;
+          color: <%= searchMode === 'name' ? 'var(--text-secondary)' : 'white' %>;">
+          🔍 BY SERIAL NUMBER
+        </button>
+        <button onclick="setMode('name')" id="btn-name"
+          style="padding: 0.6rem 1.5rem; border: none; cursor: pointer; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px; transition: all 0.2s;
+          background: <%= searchMode === 'name' ? 'var(--primary)' : 'var(--bg-secondary)' %>;
+          color: <%= searchMode === 'name' ? 'white' : 'var(--text-secondary)' %>;">
+          📋 BY WEAPON CLASS
+        </button>
+      </div>
+
+      <!-- Serial Number Search -->
+      <form action="/assets/custody-history" method="GET" id="form-serial" style="display: <%= searchMode === 'name' ? 'none' : 'block' %>">
+        <div class="form-group mb-0">
+          <label>WEAPON SERIAL NUMBER</label>
+          <div style="display: flex; gap: 1rem;">
+            <input type="text" name="serial" class="form-control" placeholder="e.g. SR-1001"
+              value="<%= searchSerial %>" style="flex: 1; font-size: 1.1rem; padding: 1rem 1.25rem;" />
+            <button type="submit" class="btn btn-primary" style="padding: 0 2rem; white-space: nowrap;">GENERATE REPORT</button>
+          </div>
+          <small style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.4rem; display: block;">
+            Search the full lifecycle history of a single specific weapon unit.
+          </small>
+        </div>
+      </form>
+
+      <!-- Weapon Class / Name Search -->
+      <form action="/assets/custody-history" method="GET" id="form-name" style="display: <%= searchMode === 'name' ? 'block' : 'none' %>">
+        <div class="form-group mb-0">
+          <label>WEAPON CLASS / MODEL NAME <span style="color: var(--primary);">★ NEW</span></label>
+          <div style="display: flex; gap: 1rem;">
+            <input type="text" name="name" class="form-control" placeholder="e.g. AK-47, M4 Carbine, INSAS Rifle"
+              value="<%= searchName %>" style="flex: 1; font-size: 1.1rem; padding: 1rem 1.25rem;" />
+            <button type="submit" class="btn btn-primary" style="padding: 0 2rem; white-space: nowrap;">FLEET REPORT</button>
+          </div>
+          <small style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.4rem; display: block;">
+            View combined transaction & maintenance history for all weapons of the same class/name.
+          </small>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <%# ============================================================ %>
+  <%# MODE 1: Single Serial Number Result %>
+  <%# ============================================================ %>
+  <% if (searchMode === 'serial' && searchSerial && !asset) { %>
+    <div class="alert alert-error">
+      ⚠️ <strong>NO RECORD FOUND:</strong> Weapon with serial number "<strong><%= searchSerial %></strong>" does not exist in the registry.
+    </div>
+
+  <% } else if (searchMode === 'serial' && asset) { %>
+    <!-- Asset Profile Summary -->
+    <div class="custody-grid mb-4">
+      <div class="card asset-summary-card">
+        <div class="card-body">
+          <div class="status-indicator-float status-<%= asset.status.toLowerCase().replace(/ /g, '-') %>">
+            <%= asset.status.toUpperCase() %>
+          </div>
+          <div class="asset-info-header">
+            <div class="asset-meta">
+              <span class="badge badge-category"><%= asset.category %></span>
+              <code class="serial-tag"><%= asset.serialNumber %></code>
+            </div>
+            <h2 class="asset-name-large"><%= asset.name %></h2>
+            <p class="text-muted"><%= asset.manufacturer || 'Standard Issue' %> • <%= asset.model %></p>
+          </div>
+          <div class="asset-stats-row">
+            <div class="asset-stat">
+              <span class="stat-label">CONDITION</span>
+              <span class="condition-<%= asset.condition.toLowerCase() %>"><%= asset.condition %></span>
+            </div>
+            <div class="asset-stat">
+              <span class="stat-label">LOCATION</span>
+              <span><%= asset.location %></span>
+            </div>
+            <div class="asset-stat">
+              <span class="stat-label">UNIT</span>
+              <span><%= asset.unit %></span>
+            </div>
+            <div class="asset-stat">
+              <span class="stat-label">TOTAL EVENTS</span>
+              <span style="font-weight: 800; color: var(--primary);"><%= history.length + 1 %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card custody-current-card">
+        <div class="card-body">
+          <h3>CURRENT CUSTODIAN</h3>
+          <% if (asset.assignedTo) { %>
+            <div class="user-profile-large">
+              <div class="user-avatar-large"><%= asset.assignedTo.username[0].toUpperCase() %></div>
+              <div class="user-details-large">
+                <div class="user-name-large"><%= asset.assignedTo.username %></div>
+                <div class="user-rank-large"><%= asset.assignedTo.rank || 'Active Duty' %></div>
+                <div class="user-unit-large"><%= asset.assignedTo.unit || 'Assigned Unit' %></div>
+              </div>
+            </div>
+          <% } else if (asset.status === 'Decommissioned') { %>
+            <div class="discarded-notice">
+              <span class="discarded-icon">⚠️</span>
+              <div><strong>DISCARDED / DECOMMISSIONED</strong><p>This weapon is no longer in active service.</p></div>
+            </div>
+          <% } else { %>
+            <div class="armoury-notice">
+              <span class="armoury-icon">🏛️</span>
+              <div><strong>SECURED IN ARMOURY</strong><p>Currently available for deployment.</p></div>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <%- include('./_history_table', { history, showAssetCol: false, asset }) %>
+
+  <%# ============================================================ %>
+  <%# MODE 2: Weapon Class / Name Fleet Report %>
+  <%# ============================================================ %>
+  <% } else if (searchMode === 'name' && searchName && fleetAssets.length === 0) { %>
+    <div class="alert alert-error">
+      ⚠️ <strong>NO WEAPONS FOUND:</strong> No weapons matching "<strong><%= searchName %></strong>" found in the registry.
+    </div>
+
+  <% } else if (searchMode === 'name' && fleetAssets.length > 0) { %>
+
+    <!-- Fleet Summary Banner -->
+    <div class="card mb-4" style="border: 2px solid var(--primary); background: var(--primary-soft);">
+      <div class="card-body" style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+        <div style="font-size: 3rem;">📋</div>
+        <div style="flex: 1;">
+          <h2 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--primary);">FLEET REPORT: "<%= searchName.toUpperCase() %>"</h2>
+          <p style="margin: 0.25rem 0 0; color: var(--text-secondary); font-size: 0.9rem;">
+            <%= fleetAssets.length %> weapon unit(s) found •
+            <%= history.length %> total events across the fleet
+          </p>
+        </div>
+        <!-- Fleet stats -->
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <% const inUseCount = fleetAssets.filter(a => a.status === 'In Use').length; %>
+          <% const availCount = fleetAssets.filter(a => a.status === 'Available').length; %>
+          <% const mntCount = fleetAssets.filter(a => a.status === 'Under Maintenance').length; %>
+          <div class="info-cell" style="min-width: 80px; text-align: center;">
+            <span class="info-label">AVAILABLE</span>
+            <span style="font-size: 1.5rem; font-weight: 800; color: var(--green);"><%= availCount %></span>
+          </div>
+          <div class="info-cell" style="min-width: 80px; text-align: center;">
+            <span class="info-label">IN USE</span>
+            <span style="font-size: 1.5rem; font-weight: 800; color: var(--primary);"><%= inUseCount %></span>
+          </div>
+          <div class="info-cell" style="min-width: 80px; text-align: center;">
+            <span class="info-label">MAINTENANCE</span>
+            <span style="font-size: 1.5rem; font-weight: 800; color: var(--yellow);"><%= mntCount %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fleet Asset List (collapsible overview) -->
+    <div class="card mb-4">
+      <div class="card-header" style="cursor: pointer;" onclick="document.getElementById('fleet-list').style.display = document.getElementById('fleet-list').style.display === 'none' ? 'block' : 'none'">
+        <h3 class="card-title">WEAPON UNITS IN THIS CLASS (<%= fleetAssets.length %>)</h3>
+        <span class="btn btn-sm btn-outline">TOGGLE ▼</span>
+      </div>
+      <div id="fleet-list" class="card-body p-0">
+        <table class="table">
+          <thead>
+            <tr><th>NAME</th><th>SERIAL NO</th><th>STATUS</th><th>CONDITION</th><th>LOCATION</th><th>CURRENT USER</th></tr>
+          </thead>
+          <tbody>
+            <% fleetAssets.forEach(a => { %>
+            <tr>
+              <td><strong><%= a.name %></strong></td>
+              <td><code class="asset-id"><%= a.serialNumber %></code></td>
+              <td><span class="status-badge status-<%= a.status.toLowerCase().replace(/ /g, '-') %>"><%= a.status %></span></td>
+              <td><span class="condition-<%= a.condition.toLowerCase() %>"><%= a.condition %></span></td>
+              <td><%= a.location %></td>
+              <td><%= a.assignedTo ? a.assignedTo.username : '— Armoury' %></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Combined Fleet Timeline -->
+    <%- include('./_history_table', { history, showAssetCol: true, asset: null }) %>
+
+  <% } else { %>
+    <!-- Default empty state -->
+    <div style="text-align: center; padding: 5rem 2rem; opacity: 0.7;">
+      <div style="font-size: 5rem; margin-bottom: 1.5rem;">📜</div>
+      <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">READY FOR LOOKUP</h2>
+      <p class="text-secondary">Enter a weapon serial number <strong>or</strong> a weapon class name above to generate a full report.</p>
+    </div>
+  <% } %>
+</main>
+
+<style>
+  .search-form-full { max-width: 800px; margin: 0 auto; }
+  .custody-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 1.5rem; }
+  .asset-name-large { font-size: 2rem; margin: 0.5rem 0; letter-spacing: -1px; font-weight: 800; }
+  .serial-tag { background: var(--primary-soft); padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.9rem; font-weight: 700; color: var(--primary); }
+  .status-indicator-float { float: right; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 800; font-size: 0.75rem; }
+  .asset-stats-row { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-light); }
+  .asset-stat { display: flex; flex-direction: column; }
+  .stat-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.2rem; }
+  .condition-excellent { color: var(--green); font-weight: 700; }
+  .condition-good { color: var(--blue); font-weight: 700; }
+  .condition-fair { color: var(--yellow); font-weight: 700; }
+  .condition-poor { color: var(--red); font-weight: 700; }
+  .user-profile-large { display: flex; align-items: center; gap: 1.5rem; margin-top: 1rem; }
+  .user-avatar-large { width: 64px; height: 64px; background: var(--primary); color: white; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; font-weight: 800; box-shadow: 0 8px 16px rgba(249, 115, 22, 0.2); }
+  .user-name-large { font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+  .user-rank-large { color: var(--primary); font-weight: 700; font-size: 0.9rem; text-transform: uppercase; }
+  .discarded-notice, .armoury-notice { display: flex; gap: 1rem; align-items: center; padding: 1.25rem; border-radius: 12px; margin-top: 1rem; }
+  .discarded-notice { background: var(--red-soft); color: var(--red); border: 1px solid #fee2e2; }
+  .armoury-notice { background: var(--blue-soft); color: var(--blue); border: 1px solid #dbeafe; }
+</style>
+
+<script>
+function setMode(mode) {
+  document.getElementById('form-serial').style.display = mode === 'serial' ? 'block' : 'none';
+  document.getElementById('form-name').style.display = mode === 'name' ? 'block' : 'none';
+  document.getElementById('btn-serial').style.background = mode === 'serial' ? 'var(--primary)' : 'var(--bg-secondary)';
+  document.getElementById('btn-serial').style.color = mode === 'serial' ? 'white' : 'var(--text-secondary)';
+  document.getElementById('btn-name').style.background = mode === 'name' ? 'var(--primary)' : 'var(--bg-secondary)';
+  document.getElementById('btn-name').style.color = mode === 'name' ? 'white' : 'var(--text-secondary)';
+}
+</script>
+
+<%- include('../partials/footer') %>

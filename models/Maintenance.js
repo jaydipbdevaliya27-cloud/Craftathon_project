@@ -1,44 +1,64 @@
 const mongoose = require('mongoose');
 
 const maintenanceSchema = new mongoose.Schema({
+  maintenanceId: {
+    type: String,
+    unique: true,
+    default: () => `MNT-${Math.random().toString(36).substr(2, 6).toUpperCase()}`
+  },
   asset: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Asset',
     required: true,
   },
+  type: {
+    type: String,
+    enum: ['Routine', 'Repair', 'Inspection', 'Overhaul', 'Emergency'],
+    required: true,
+  },
+  priority: {
+    type: String,
+    enum: ['Low', 'Medium', 'High', 'Critical'],
+    default: 'Medium',
+  },
+  status: {
+    type: String,
+    enum: ['Scheduled', 'In Progress', 'Completed', 'Cancelled'],
+    default: 'Scheduled',
+  },
+  description: {
+    type: String,
+    trim: true,
+    default: '',
+  },
   scheduledDate: {
     type: Date,
     required: true,
   },
-  completedDate: {
+  completionDate: {
     type: Date,
     default: null,
   },
-  type: {
-    type: String,
-    enum: ['Routine', 'Repair', 'Inspection'],
+  assignedTechnician: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null,
+  },
+  requestedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true,
   },
-  status: {
-    type: String,
-    enum: ['Scheduled', 'In Progress', 'Completed'],
-    default: 'Scheduled',
+  cost: {
+    type: Number,
+    default: 0,
   },
-  technician: {
-    type: String,
-    required: [true, 'Technician name is required'],
-    trim: true,
-  },
+  partsReplaced: [String],
   notes: {
     type: String,
     trim: true,
     default: '',
   },
-  reportedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('Maintenance', maintenanceSchema);

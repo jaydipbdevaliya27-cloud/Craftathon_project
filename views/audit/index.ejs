@@ -4,25 +4,38 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">AUDIT LOG</h1>
-      <p class="page-subtitle">System activity and security event log</p>
+      <p class="page-subtitle">System activity and security event log (Active)</p>
     </div>
   </div>
 
+  <!-- Unified Filter System -->
+  <% if (typeof globalTamperedCount !== 'undefined' && globalTamperedCount > 0) { %>
+    <div style="margin: 20px; padding: 15px; background: rgba(255,0,0,0.1); color: #cc0000; border: 1px solid #cc0000; border-radius: 8px; font-weight: bold;">
+      ⚠️ SECURITY ALERT: <%= globalTamperedCount %> audit log(s) across the entire system have failed hash verification and appear to be tampered with!
+    </div>
+  <% } %>
+
   <div class="filter-bar">
     <form method="GET" action="/audit" class="filter-form">
-      <select name="action" class="form-control">
-        <option value="">All Actions</option>
-        <% actions.forEach(a => { %>
-          <option value="<%= a %>" <%= filters.action === a ? 'selected' : '' %>><%= a %></option>
-        <% }) %>
-      </select>
-      <select name="limit" class="form-control">
-        <% [25, 50, 100, 200].forEach(l => { %>
-          <option value="<%= l %>" <%= parseInt(filters.limit) === l ? 'selected' : '' %>>Last <%= l %></option>
-        <% }) %>
-      </select>
-      <button type="submit" class="btn btn-outline">FILTER</button>
-      <a href="/audit" class="btn btn-ghost">CLEAR</a>
+      <div class="form-group mb-0">
+        <label>SECURITY ACTION</label>
+        <select name="action" class="form-control">
+          <option value="">All Actions</option>
+          <% actions.forEach(a => { %>
+            <option value="<%= a %>" <%= filters.action === a ? 'selected' : '' %>><%= a %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mb-0">
+        <label>LOG DEPTH</label>
+        <select name="limit" class="form-control">
+          <% [25, 50, 100, 200].forEach(l => { %>
+            <option value="<%= l %>" <%= parseInt(filters.limit) === l ? 'selected' : '' %>>Last <%= l %></option>
+          <% }) %>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm mt-3">FILTER</button>
+      <a href="/audit" class="btn btn-outline btn-sm mt-3">CLEAR</a>
     </form>
   </div>
 
@@ -37,11 +50,21 @@
           </thead>
           <tbody>
             <% logs.forEach(log => { %>
-              <tr>
-                <td class="mono"><%= new Date(log.timestamp).toLocaleString() %></td>
+              <tr <%- log.isTampered ? 'style="background-color: rgba(255,0,0,0.1); border-left: 4px solid red;"' : '' %>>
+                <td class="mono">
+                  <%= new Date(log.timestamp).toLocaleString() %>
+                  <% if (log.isTampered) { %>
+                    <br><span style="color: red; font-size: 0.8em; font-weight: bold;">⚠️ TAMPERED</span>
+                  <% } %>
+                </td>
                 <td><span class="audit-action audit-<%= log.action.includes('DELETE') || log.action === 'FAILED_LOGIN' ? 'danger' : log.action.includes('CREATE') ? 'success' : 'info' %>"><%= log.action %></span></td>
                 <td><%= log.performedBy ? log.performedBy.username : 'SYSTEM' %><% if (log.performedBy && log.performedBy.rank) { %> <small>(<%= log.performedBy.rank %>)</small><% } %></td>
-                <td><%= log.targetModel %></td>
+                <td>
+                  <%= log.targetModel %><br/>
+                  <% if (log.assetId && typeof log.assetId === 'object') { %>
+                    <small class="text-muted"><%= log.assetId.assetId %> (<%= log.assetId.name %>)</small>
+                  <% } %>
+                </td>
                 <td class="audit-details"><%= log.details || '—' %></td>
                 <td class="mono"><%= log.ipAddress || '—' %></td>
               </tr>
